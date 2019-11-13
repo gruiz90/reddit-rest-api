@@ -14,8 +14,7 @@ class Subreddit(models.Model):
     over18 = models.BooleanField('NSFW')
 
     def __str__(self):
-        return f"Subreddit name: {self.name}\n"
-        f"Description: {self.description}\nTotal subs: {self.subscribers}"
+        return f"Subreddit name: {self.name}\nDescription: {self.description}\nTotal subs: {self.subscribers}"
 
     def get_or_create_by_name(self, name):
         pass
