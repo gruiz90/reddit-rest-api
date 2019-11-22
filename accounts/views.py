@@ -1,57 +1,171 @@
+#!/usr/bin/env python3
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, exceptions
 import praw
 import random
 import os
-from django.shortcuts import redirect, Http404
+from django.shortcuts import redirect
+from django.core.cache import cache
+from django.utils.timezone import now
+from django.contrib.auth.models import User
+
+from .serializers import SalesforceOrgSerializer, ClientOrgSerializer
+from redditors.serializers import RedditorSerializer
+from .models import SalesforceOrg, ClientOrg, Token
+from redditors.models import Redditor
+from herokuredditapi.permissions import MyOauthConfirmPermission
+from herokuredditapi.utils import utils
+logger = utils.init_logger(__name__)
 
 
 class AccountOauthView(APIView):
     """
-    API endpoint that starts the Reddit Account oauth flow
+    API endpoint that initiates the Reddit Account oauth flow
     """
 
     def get(self, request, Format=None):
-        print('-' * 50)
-        print('New Reddit Oauth login...')
+        logger.info('-' * 100)
+        logger.info('Reddit New OAuth request...')
 
-        # redirectUri = request.query_params.get('redirect_uri')
-        # orgId = request.query_params.get('org_id')
-        # print(f'Redirect URI: {redirectUri}')
-        # print(f'Org ID: {orgId}')
+        state = str(random.randint(0, 65536))
+        while cache.has_key(state):
+            state = str(random.randint(0, 65536))
+        cache.set(f'oauth_{state}', {'status': 'pending'})
+        logger.debug(f'Saving oauth_{state} in cache with status pending')
+
+        # Obtain authorization URL
+        reddit = reddit = utils.get_reddit_instance()
+        # scopes = ['identity', 'mysubreddits', 'read', 'subscribe', 'vote']
+        auth_url = reddit.auth.url(['*'], state, 'permanent')
+        logger.debug(f'Reddit auth url: {auth_url}')
+
+        return Response({'oauth_url': auth_url, 'state': state}, status=status.HTTP_200_OK)
+
+
+class AccountOauthCallbackView(APIView):
+    """
+    API endpoint that handles the callback from Reddit Oauth flow
+    """
+
+    def get(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Reddit Oauth callback...')
 
         state = request.query_params.get('state')
-        code = request.query_params.get('code')
+        logger.debug(f'state in request: {state}')
+        if not state:
+            raise exceptions.ParseError(
+                detail={'detail': 'state param not found.'})
 
-        if state:
-            cookieState = request.COOKIES.get('state')
-            print(f'State in cookie: {cookieState}')
-            if cookieState is not None and state == cookieState:
-                print(f'Code received: {code} ... What to do now???')
-            else:
-                raise Http404
+        if cache.has_key(f'oauth_{state}'):
+            logger.info(f'State verified successfully!')
+
+            # Check for error in query params
+            oauth_error = request.query_params.get('error')
+            if oauth_error:
+                cache.set(f'oauth_{state}', {
+                          'status': 'error', 'msg': oauth_error})
+                raise exceptions.PermissionDenied({'detail': oauth_error})
+
+            code = request.query_params.get('code')
+            logger.debug(f'code in request: {code}')
+            if not code:
+                raise exceptions.ParseError(
+                    detail={'detail': 'code param not found.'})
+
+            cache.set(f'oauth_{state}', {'status': 'accepted', 'code': code})
+            logger.info('Reddit oauth code saved in cache succesfully!')
+            # Return a response with 200:OK here...
+            return Response({'message': 'Oauth code saved successfully.'}, status=status.HTTP_200_OK)
         else:
-            # Save in reddis the uri by orgId?
-            # Response.set_cookie('redirectUriReddit', redirectUri)
-            # print('Redirect URI stored in browser's cookies by key "redirectUriReddit"')
-            redditClientId = os.environ.get('REDDIT_CLIENT_ID')
-            print(f'Reddit client id: {redditClientId}')
+            msg = 'Invalid or expired state.'
+            logger.error(msg)
+            cache.set(f'oauth_{state}', {'status': 'error', 'detail': msg})
+            raise exceptions.AuthenticationFailed(detail={'detail': msg})
 
-            # Obtain authorization URL
-            reddit = praw.Reddit(client_id=os.environ.get('REDDIT_CLIENT_ID'),
-                                 client_secret=os.environ.get(
-                                     'REDDIT_CLIENT_SECRET'),
-                                 redirect_uri='http://localhost:8000/accounts',
-                                 user_agent=os.environ.get('REDDIT_USER_AGENT'))
-            state = str(random.randint(0, 65000))
-            print(f'state generated: {state}')
-            authUrl = reddit.auth.url(
-                ['identity', 'mysubreddits', 'read', 'subscribe', 'vote'], state, 'permanent')
-            print(f'Redirecting to -> {authUrl}')
 
-            response = redirect(authUrl)
-            response.set_cookie('state', state)
-            print('Saved state in cookies for now..')
-            return response
-        return Response(status=status.HTTP_204_NO_CONTENT)
+class AccountOauthConfirmationView(APIView):
+    """
+    API endpoint to check oauth status for a Salesforce Org (GET) 
+    and handle the confirmation of a Reddit account for some Salesforce org (POST)
+    """
+    permission_classes = [MyOauthConfirmPermission]
+
+    def get(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Reddit Oauth status ping...')
+
+        state = request.query_params.get('state')
+        logger.debug(f'state from Salesforce org: {state}')
+
+        oauth_data = cache.get(f'oauth_{state}')
+        oauth_status = oauth_data['status']
+        if oauth_status == 'pending':
+            return Response(data={'message': 'Authorization still pending.'},
+                            status=status.HTTP_202_ACCEPTED)
+        elif oauth_status == 'accepted' or oauth_status == 'error':
+            response_data = {'result': oauth_status}
+            response_data['message'] = (
+                lambda x, y: 'Authorization complete.' if x == 'accepted' else y
+            )(oauth_status, oauth_data['detail'] if 'detail' in oauth_data.keys() else None)
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            raise exceptions.APIException(
+                detail={'detail': 'Invalid status detected'}, code=status.HTTP_501_NOT_IMPLEMENTED)
+
+    def post(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Reddit Oauth confirmation post...')
+
+        state = request.query_params.get('state')
+        logger.debug(f'state from Salesforce org: {state}')
+
+        # Get refresh token from cache
+        oauth_data = cache.get(f'oauth_{state}')
+        # Get the reddit code and generate the refresh_token
+        reddit_code = oauth_data['code']
+        reddit = utils.get_reddit_instance()
+        refresh_token = reddit.auth.authorize(reddit_code)
+        # Get the redditor data from API
+        api_redditor = reddit.user.me()
+
+        # Create or update redditor object for this client
+        redditor = Redditor.objects.get_or_none(id=api_redditor.id)
+        serializer = RedditorSerializer(
+            instance=redditor, data=utils.get_redditor_data(api_redditor))
+        serializer.is_valid(raise_exception=True)
+        redditor = serializer.save()
+        logger.debug(redditor)
+        redditor_data = serializer.data
+
+        # Then save the Salesforce org data
+        org = SalesforceOrg.objects.get_or_none(
+            org_id=request.data['org_id'])
+        serializer = SalesforceOrgSerializer(
+            instance=org, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        org = serializer.save()
+        logger.debug(org)
+
+        # Finally save the client org object
+        client_org = ClientOrg.objects.get_or_none(
+            redditor_id=redditor.id)
+        serializer = ClientOrgSerializer(instance=client_org,
+                                         data={'timestamp_client_connected': now(),
+                                               'reddit_token': refresh_token,
+                                               'client_token': 'random_token'})
+        serializer.is_valid(raise_exception=True)
+        client_org = serializer.save(salesforce_org=org, redditor=redditor)
+        # Create a random token for this client_org
+        # This token will be used to authenticate the client org for all future requests
+        token = Token.objects.create(client_org=client_org)
+        logger.debug(token.key)
+
+        # Return redditor data + token generated
+        redditor_data.update(token=token.key)
+        return Response(redditor_data, status=status.HTTP_201_CREATED)
+
+    # def perform_create(self, serializer):
+    #     serializer.save(owner=self.request.user)
