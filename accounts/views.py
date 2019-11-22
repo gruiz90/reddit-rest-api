@@ -65,7 +65,7 @@ class AccountOauthCallbackView(APIView):
             oauth_error = request.query_params.get('error')
             if oauth_error:
                 cache.set(f'oauth_{state}', {
-                          'status': 'error', 'msg': oauth_error})
+                          'status': 'error', 'detail': oauth_error})
                 raise exceptions.PermissionDenied({'detail': oauth_error})
 
             code = request.query_params.get('code')
@@ -77,7 +77,7 @@ class AccountOauthCallbackView(APIView):
             cache.set(f'oauth_{state}', {'status': 'accepted', 'code': code})
             logger.info('Reddit oauth code saved in cache succesfully!')
             # Return a response with 200:OK here...
-            return Response({'message': 'Oauth code saved successfully.'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Oauth code saved successfully.'}, status=status.HTTP_200_OK)
         else:
             msg = 'Invalid or expired state.'
             logger.error(msg)
@@ -102,11 +102,11 @@ class AccountOauthConfirmationView(APIView):
         oauth_data = cache.get(f'oauth_{state}')
         oauth_status = oauth_data['status']
         if oauth_status == 'pending':
-            return Response(data={'message': 'Authorization still pending.'},
+            return Response(data={'detail': 'Authorization still pending.'},
                             status=status.HTTP_202_ACCEPTED)
         elif oauth_status == 'accepted' or oauth_status == 'error':
             response_data = {'result': oauth_status}
-            response_data['message'] = (
+            response_data['detail'] = (
                 lambda x, y: 'Authorization complete.' if x == 'accepted' else y
             )(oauth_status, oauth_data['detail'] if 'detail' in oauth_data.keys() else None)
 
