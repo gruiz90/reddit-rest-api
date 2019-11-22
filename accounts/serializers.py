@@ -31,8 +31,6 @@ class ClientOrgSerializer(serializers.ModelSerializer):
             'last_time_client_updated', instance.last_time_client_updated)
         instance.reddit_token = validated_data.get(
             'reddit_token', instance.reddit_token)
-        instance.client_token = validated_data.get(
-            'client_token', instance.client_token)
         instance.save()
         return instance
 

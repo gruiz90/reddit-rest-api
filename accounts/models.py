@@ -42,8 +42,6 @@ class ClientOrg(models.Model):
         auto_now=False, auto_now_add=False, null=True)
     reddit_token = EncryptedCharField(
         max_length=256, help_text='Reddit refresh token for the Salesforce Client Org.')
-    client_token = EncryptedCharField(
-        max_length=256, help_text='Generated random token for Salesforce Client Org.')
 
     objects = MyModelManager()
 

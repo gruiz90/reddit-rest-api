@@ -124,6 +124,8 @@ class AccountOauthConfirmationView(APIView):
 
         # Get refresh token from cache
         oauth_data = cache.get(f'oauth_{state}')
+        # Delete from cache after getting the data needed
+        cache.delete(f'oauth_{state}')
         # Get the reddit code and generate the refresh_token
         reddit_code = oauth_data['code']
         reddit = utils.get_reddit_instance()
@@ -154,12 +156,15 @@ class AccountOauthConfirmationView(APIView):
             redditor_id=redditor.id)
         serializer = ClientOrgSerializer(instance=client_org,
                                          data={'timestamp_client_connected': now(),
-                                               'reddit_token': refresh_token,
-                                               'client_token': 'random_token'})
+                                               'reddit_token': refresh_token})
         serializer.is_valid(raise_exception=True)
         client_org = serializer.save(salesforce_org=org, redditor=redditor)
+
         # Create a random token for this client_org
         # This token will be used to authenticate the client org for all future requests
+        token = Token.objects.get_or_none(client_org_id=client_org.redditor_id)
+        if token:
+            token.delete()
         token = Token.objects.create(client_org=client_org)
         logger.debug(token.key)
 
