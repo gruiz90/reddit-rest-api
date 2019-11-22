@@ -1,6 +1,6 @@
 from django.db import models
 import uuid
-import praw
+from herokuredditapi.modelmanager import MyModelManager
 
 
 class Subreddit(models.Model):
@@ -12,6 +12,8 @@ class Subreddit(models.Model):
     created_utc = models.BigIntegerField()
     subscribers = models.PositiveIntegerField('subscribers count')
     over18 = models.BooleanField('NSFW')
+
+    objects = MyModelManager()
 
     def __str__(self):
         return f"Subreddit name: {self.name}\nDescription: {self.description}\nTotal subs: {self.subscribers}"

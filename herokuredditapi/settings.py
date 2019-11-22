@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # False if not in os.environ
-DEBUG = os.environ.get('DEBUG')
+DEBUG = os.environ.get('DEBUG', False)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'encrypted_model_fields',
     'rest_framework',
+    'rest_framework.authtoken',
     'accounts',
     'redditors',
     'subreddits',
@@ -84,14 +86,23 @@ WSGI_APPLICATION = 'herokuredditapi.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'heroku_reddit_api',
+        'NAME': 'heroku_reddit',
         'USER': 'gruiz',
         'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '',
-    }
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    },
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.RedisCache",
+        "LOCATION": os.environ.get('REDIS_URL'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -140,6 +151,49 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     # ],
+    # Add custom renderer.
+    'DEFAULT_RENDERER_CLASSES': [
+        'herokuredditapi.renderers.CustomJSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    # Add cutom exception handler
+    'EXCEPTION_HANDLER': 'herokuredditapi.utils.custom_json_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
 }
+
+# To be able to use encrypted model fields
+FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
+
+
+# LOGGING_CONFIG = None
+# LOGLEVEL = os.environ.get('LOGLEVEL', 'debug').upper()
+# logging.config.dictConfig({
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'console': {
+#             # exact format is not important, this is the minimum information
+#             'format': '%(name)-12s %(levelname)-8s %(message)s',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'console',
+#         },
+#     },
+#     'loggers': {
+#         # root logger
+#         '': {
+#             'level': 'WARNING',
+#             'handlers': ['console'],
+#         },
+#         'accounts': {
+#             'level': LOGLEVEL,
+#             'handlers': ['console'],
+#             # required to avoid double logging with root logger
+#             'propagate': False,
+#         },
+#     },
+# })
