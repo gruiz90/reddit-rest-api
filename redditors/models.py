@@ -35,6 +35,6 @@ class Redditor(models.Model):
         verbose_name_plural = "Redditors"
 
     def __str__(self):
-        result = [f'Name: {self.name}', f'Created UTC: {self.created_utc}',
+        result = [f'Redditor\'s Name: {self.name}', f'Created UTC: {self.created_utc}',
                   f'Comment Karma: {self.comment_karma}', f'Link Karma: {self.link_karma}', ]
         return ', '.join((str(x) for x in result))
