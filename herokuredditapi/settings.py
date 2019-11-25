@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'encrypted_model_fields',
     'rest_framework',
-    'rest_framework.authtoken',
     'accounts',
     'redditors',
     'subreddits',
