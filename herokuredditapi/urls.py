@@ -23,7 +23,7 @@ admin.autodiscover()
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('user_groups/', include('user_groups.urls')),
+    path('redditors/', include('redditors.urls', namespace='redditors')),
     # path('subreddits/', include('subreddits.urls', namespace='subreddits')),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # path('user_groups/', include('user_groups.urls')),
 ]

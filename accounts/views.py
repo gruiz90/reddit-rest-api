@@ -2,12 +2,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
-from django.shortcuts import redirect
 from django.core.cache import cache
 from django.utils.timezone import now
-from django.contrib.auth.models import User
 from pprint import pprint
-import praw
 import random
 import os
 
@@ -18,6 +15,7 @@ from redditors.models import Redditor
 from rest_framework.permissions import IsAuthenticated
 from herokuredditapi.permissions import MyOauthConfirmPermission
 from herokuredditapi.tokenauthentication import MyTokenAuthentication
+
 from herokuredditapi.utils import utils
 logger = utils.init_logger(__name__)
 
@@ -183,7 +181,7 @@ class AccountDisconnectView(APIView):
     authentication_classes = [MyTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, Format=None):
+    def delete(self, request, Format=None):
         logger.info('-' * 100)
         logger.info('Reddit Account disconnect...')
 

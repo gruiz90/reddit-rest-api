@@ -70,6 +70,10 @@ class ClientOrg(models.Model):
                   f'Is active: {self.is_active}']
         return ', '.join((str(x) for x in result))
 
+    def new_client_request(self):
+        self.last_client_request_at = now()
+        self.save()
+
 
 class Token(models.Model):
     """
