@@ -168,8 +168,16 @@ class AccountOauthConfirmationView(APIView):
         token = Token.objects.create(client_org=client_org)
         logger.debug(token.key)
 
-        # Return redditor data + token generated
-        redditor_data.update(bearer_token=token.key)
+        reddit_user = reddit.user
+        subreddits = []
+        for sub in reddit_user.subreddits():
+            subreddits.append(
+                {'id': sub.id, 'display_name': sub.display_name,
+                 'public_description': sub.public_description,
+                 'subscribers': sub.subscribers})
+
+        # Return redditor data + subscriptions + token generated
+        redditor_data.update(subscriptions=subreddits, bearer_token=token.key)
         return Response(redditor_data, status=status.HTTP_201_CREATED)
 
 
