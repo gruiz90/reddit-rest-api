@@ -16,6 +16,8 @@ class Redditor(models.Model):
         default=0, help_text='The comment karma for the Redditor.')
     link_karma = models.IntegerField(
         default=0, help_text='The link karma for the Redditor.')
+    num_friends = models.PositiveIntegerField(
+        'friends count', default=0, help_text='Count of friends.')
     is_employee = models.BooleanField(null=True,
                                       help_text='Whether or not the Redditor is a Reddit employee.')
     is_friend = models.BooleanField(
@@ -35,6 +37,6 @@ class Redditor(models.Model):
         verbose_name_plural = "Redditors"
 
     def __str__(self):
-        result = [f'Name: {self.name}', f'Created UTC: {self.created_utc}',
+        result = [f'Redditor\'s Name: {self.name}', f'Created UTC: {self.created_utc}',
                   f'Comment Karma: {self.comment_karma}', f'Link Karma: {self.link_karma}', ]
         return ', '.join((str(x) for x in result))
