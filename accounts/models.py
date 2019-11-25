@@ -90,7 +90,7 @@ class Token(models.Model):
         #
         # Also see corresponding ticket:
         # https://github.com/encode/django-rest-framework/issues/705
-        abstract = 'rest_framework.authtoken' not in settings.INSTALLED_APPS
+        # abstract = 'rest_framework.authtoken' not in settings.INSTALLED_APPS
         verbose_name = _("Token")
         verbose_name_plural = _("Tokens")
 
