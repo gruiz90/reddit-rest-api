@@ -5,15 +5,13 @@ from redditors.models import Redditor
 
 
 class ClientOrgSerializer(serializers.ModelSerializer):
-    redditor = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = ClientOrg
         # fields = ['redditor', 'salesforce_org',
-        #           'timestamp_client_connected',
-        #           'timestamp_client_disconnected',
-        #           'last_time_client_request',
-        #           'last_time_client_updated', ]
+        #           'connected_at',
+        #           'disconnected_at',
+        #           'last_client_request_at',
+        #           'last_client_update_at', ]
         fields = '__all__'
         depth = 1
 
@@ -21,23 +19,20 @@ class ClientOrgSerializer(serializers.ModelSerializer):
         return ClientOrg.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.timestamp_client_connected = validated_data.get(
-            'timestamp_client_connected', instance.timestamp_client_connected)
-        instance.timestamp_client_disconnected = validated_data.get(
-            'timestamp_client_disconnected', instance.timestamp_client_disconnected)
-        instance.last_time_client_request = validated_data.get(
-            'last_time_client_request', instance.last_time_client_request)
-        instance.last_time_client_updated = validated_data.get(
-            'last_time_client_updated', instance.last_time_client_updated)
+        instance.connected_at = validated_data.get(
+            'connected_at', instance.connected_at)
+        instance.disconnected_at = validated_data.get(
+            'disconnected_at', instance.disconnected_at)
+        instance.last_client_request_at = validated_data.get(
+            'last_client_request_at', instance.last_client_request_at)
+        instance.last_client_update_at = validated_data.get(
+            'last_client_update_at', instance.last_client_update_at)
+        instance.is_active = validated_data.get(
+            'is_active', instance.is_active)
         instance.reddit_token = validated_data.get(
             'reddit_token', instance.reddit_token)
         instance.save()
         return instance
-
-    # def create(self, validated_data):
-    #     salesforce_org = validated_data.pop('salesforce_org')
-    #     redditor = validated_data.pop('redditor')
-    #     return ClientOrg.objects.create(redditor=redditor, salesforce_org=salesforce_org, **validated_data)
 
 
 class SalesforceOrgSerializer(serializers.ModelSerializer):
@@ -46,8 +41,9 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesforceOrg
         fields = ['org_id', 'org_name', 'org_url',
-                  'package_version', 'clients', ]
-        read_only = ['org_id']
+                  'package_version', 'clients',
+                  'created_at', 'updated_at']
+        read_only = ['org_id', 'created_at', 'updated_at']
         depth = 1
 
     def create(self, validated_data):
@@ -60,52 +56,3 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
             'package_version', instance.package_version)
         instance.save()
         return instance
-
-    # def create(self, validated_data):
-    #     clients_data = validated_data.pop('clients')
-    #     salesforce_org = SalesforceOrg.objects.create(**validated_data)
-    #     for client_data in clients_data:
-    #         ClientOrg.objects.create(
-    #             salesforce_org=salesforce_org, **client_data)
-    #     return salesforce_org
-
-
-# class SalesforceOrgSerializer(serializers.ModelSerializer):
-#     clients = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-
-#     class Meta:
-#         model = SalesforceOrg
-#         fields = ['org_id', 'org_name', 'org_url',
-#                   'package_version', 'clients', ]
-#         depth = 1
-
-
-# class ClientOrgSerializer(serializers.ModelSerializer):
-#     salesforce_org_id = serializers.PrimaryKeyRelatedField(
-#         source='salesforce_org', read_only=True
-#     )
-#     salesforce_org = SalesforceOrgSerializer(read_only=True)
-#     redditor_id = serializers.PrimaryKeyRelatedField(
-#         source='redditor', read_only=True
-#     )
-#     redditor = RedditorSerializer(read_only=True)
-
-#     class Meta:
-#         model = ClientOrg
-#         fields = ['timestamp_client_connected',
-#                   'timestamp_client_disconnected',
-#                   'last_time_client_request',
-#                   'last_time_client_updated',
-#                   'salesforce_org', 'salesforce_org_id',
-#                   'redditor', 'redditor_id', ]
-#         depth = 1
-
-    # def create(self, validated_data):
-    #     org_data = validated_data.pop('org_data')
-
-    #     org_clients_data = validated_data.pop('org_clients')
-    #     org_data = OrgData.objects.create(**validated_data)
-    #     for org_client_data in org_clients_data:
-    #         OrgClient.objects.create(org_data=org_data, **org_client_data)
-    #     return org_data
-    #     pass

@@ -15,11 +15,15 @@ class SalesforceOrg(models.Model):
     org_name = models.CharField(max_length=256)
     org_url = models.URLField(max_length=512)
     package_version = models.CharField(max_length=8, blank=True, default='1.0')
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
 
     objects = MyModelManager()
 
     class Meta:
         ordering = ['org_name']
+        get_latest_by = 'created_date'
+        verbose_name_plural = 'Salesforce Organizations'
 
     def __str__(self):
         result = [f'Org Id: {self.org_id}', f'Org Name: {self.org_name}',
@@ -28,44 +32,55 @@ class SalesforceOrg(models.Model):
 
 
 class ClientOrg(models.Model):
-    redditor = models.OneToOneField(
-        Redditor, on_delete=models.CASCADE, related_name='client_org', primary_key=True)
+    redditor = models.ForeignKey(
+        Redditor, related_name='clients_orgs', on_delete=models.DO_NOTHING)
     salesforce_org = models.ForeignKey(
         SalesforceOrg, related_name='clients', on_delete=models.CASCADE)
-    timestamp_client_connected = models.DateTimeField(
-        auto_now=False, auto_now_add=False, default=now)
-    timestamp_client_disconnected = models.DateTimeField(
-        auto_now=False, auto_now_add=False, null=True)
-    last_time_client_request = models.DateTimeField(
-        auto_now=False, auto_now_add=False, null=True)
-    last_time_client_updated = models.DateTimeField(
-        auto_now=False, auto_now_add=False, null=True)
+    connected_at = models.DateTimeField(default=now)
+    disconnected_at = models.DateTimeField(null=True)
+    last_client_request_at = models.DateTimeField(null=True)
+    last_client_update_at = models.DateTimeField(null=True)
+    is_active = models.BooleanField(default=True)
     reddit_token = EncryptedCharField(
-        max_length=256, help_text='Reddit refresh token for the Salesforce Client Org.')
+        max_length=256, null=True, help_text='Reddit refresh token for the Salesforce Client Org.')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = MyModelManager()
 
+    @property
+    def is_authenticated(self):
+        return self.__is_authenticated
+
+    @is_authenticated.setter
+    def is_authenticated(self, val):
+        self.__is_authenticated = val
+
     class Meta:
-        ordering = ['timestamp_client_connected']
+        ordering = ['updated_at']
+        get_latest_by = ['created_date']
+        verbose_name_plural = "Salesforce Organizations Clients"
 
     def __str__(self):
-        result = [f'Connection timestamp: {self.timestamp_client_connected}',
-                  f'Disconnection timestamp: {self.timestamp_client_disconnected}',
-                  f'Client request timestamp: {self.last_time_client_request}',
-                  f'Client update timestamp: {self.last_time_client_updated}']
+        result = [f'Redditor Name: {self.redditor.name}',
+                  f'Connected at: {self.connected_at}',
+                  f'Disconnected at: {self.disconnected_at}',
+                  f'Last client request at: {self.last_client_request_at}',
+                  f'Last client update at: {self.last_client_update_at}',
+                  f'Is active: {self.is_active}']
         return ', '.join((str(x) for x in result))
 
 
 class Token(models.Model):
     """
-    The default authorization token model.
+    A Token model adapted to be used with the ClientOrg model instead of User
     """
     key = models.CharField(_("Key"), max_length=40, primary_key=True)
     client_org = models.OneToOneField(
         ClientOrg, related_name='auth_token',
         on_delete=models.CASCADE, verbose_name=_("Client Org")
     )
-    created = models.DateTimeField(_("Created"), auto_now_add=True)
+    created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
 
     objects = MyModelManager()
 

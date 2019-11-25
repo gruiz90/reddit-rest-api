@@ -8,7 +8,7 @@ class Redditor(models.Model):
     name = models.CharField(
         max_length=256, help_text='The Redditor’s username.', db_index=True)
     created_utc = models.DateTimeField(
-        help_text='Time the account was created, represented in Unix Time.')
+        help_text='Time the account was created, from Unix Time to Datetime format.')
     has_verified_email = models.BooleanField(
         default=False, help_text='Whether or not the Redditor has verified their email.')
     icon_img = models.URLField(help_text='The url of the Redditors’ avatar.')
@@ -24,11 +24,15 @@ class Redditor(models.Model):
         null=True, help_text='Whether or not the Redditor mods any subreddits.')
     is_gold = models.BooleanField(
         null=True, help_text='Whether or not the Redditor has active gold status.')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = MyModelManager()
 
     class Meta:
-        ordering = ['name', 'created_utc']
+        ordering = ['name']
+        get_latest_by = ['created_at']
+        verbose_name_plural = "Redditors"
 
     def __str__(self):
         result = [f'Name: {self.name}', f'Created UTC: {self.created_utc}',

@@ -14,7 +14,9 @@ from .serializers import SalesforceOrgSerializer, ClientOrgSerializer
 from redditors.serializers import RedditorSerializer
 from .models import SalesforceOrg, ClientOrg, Token
 from redditors.models import Redditor
+from rest_framework.permissions import IsAuthenticated
 from herokuredditapi.permissions import MyOauthConfirmPermission
+from herokuredditapi.tokenauthentication import MyTokenAuthentication
 from herokuredditapi.utils import utils
 logger = utils.init_logger(__name__)
 
@@ -97,8 +99,7 @@ class AccountOauthConfirmationView(APIView):
         logger.info('Reddit Oauth status ping...')
 
         state = request.query_params.get('state')
-        logger.debug(f'state from Salesforce org: {state}')
-
+        # Get oauth_data from cache using state
         oauth_data = cache.get(f'oauth_{state}')
         oauth_status = oauth_data['status']
         if oauth_status == 'pending':
@@ -120,8 +121,6 @@ class AccountOauthConfirmationView(APIView):
         logger.info('Reddit Oauth confirmation post...')
 
         state = request.query_params.get('state')
-        logger.debug(f'state from Salesforce org: {state}')
-
         # Get refresh token from cache
         oauth_data = cache.get(f'oauth_{state}')
         # Delete from cache after getting the data needed
@@ -153,24 +152,53 @@ class AccountOauthConfirmationView(APIView):
 
         # Finally save the client org object
         client_org = ClientOrg.objects.get_or_none(
-            redditor_id=redditor.id)
+            redditor_id=redditor.id, salesforce_org_id=org.org_id)
         serializer = ClientOrgSerializer(instance=client_org,
-                                         data={'timestamp_client_connected': now(),
-                                               'reddit_token': refresh_token})
+                                         data={'connected_at': now(),
+                                               'reddit_token': refresh_token,
+                                               'is_active': True})
         serializer.is_valid(raise_exception=True)
         client_org = serializer.save(salesforce_org=org, redditor=redditor)
 
         # Create a random token for this client_org
         # This token will be used to authenticate the client org for all future requests
-        token = Token.objects.get_or_none(client_org_id=client_org.redditor_id)
+        token = Token.objects.get_or_none(client_org_id=client_org.id)
         if token:
             token.delete()
         token = Token.objects.create(client_org=client_org)
         logger.debug(token.key)
 
         # Return redditor data + token generated
-        redditor_data.update(token=token.key)
+        redditor_data.update(bearer_token=token.key)
         return Response(redditor_data, status=status.HTTP_201_CREATED)
 
-    # def perform_create(self, serializer):
-    #     serializer.save(owner=self.request.user)
+
+class AccountDisconnectView(APIView):
+    """
+    API endpoint to disconnect a Salesforce Org Client. POST request that deletes oauth token and 
+    changes the Client Org to inactive status.
+    """
+    authentication_classes = [MyTokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Reddit Account disconnect...')
+
+        # If the request is authenticated correctly by the bearer token then I can get
+        # the client_org from the request.user. Return tuple from TokenAuthentication:
+        # (request.user, request.auth) = (client_org, bearer_token)
+        client_org = request.user
+        serializer = ClientOrgSerializer(instance=client_org,
+                                         data={'disconnected_at': now(),
+                                               'reddit_token': None,
+                                               'is_active': False})
+        serializer.is_valid(raise_exception=True)
+        client_org = serializer.save()
+
+        bearer_token = request.auth
+        logger.debug(repr(bearer_token))
+        bearer_token.delete()
+
+        return Response(data={'detail': 'Account disconnected succesfully.'},
+                        status=status.HTTP_200_OK)
