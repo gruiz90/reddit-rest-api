@@ -20,6 +20,8 @@ class RedditorSerializer(serializers.ModelSerializer):
             'comment_karma', instance.comment_karma)
         instance.link_karma = validated_data.get(
             'link_karma', instance.link_karma)
+        instance.num_friends = validated_data.get(
+            'num_friends', instance.num_friends)
         instance.is_employee = validated_data.get(
             'is_employee', instance.is_employee)
         instance.is_friend = validated_data.get(

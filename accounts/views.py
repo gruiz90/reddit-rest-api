@@ -2,13 +2,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
-import praw
-import random
-import os
 from django.shortcuts import redirect
 from django.core.cache import cache
 from django.utils.timezone import now
 from django.contrib.auth.models import User
+from pprint import pprint
+import praw
+import random
+import os
 
 from .serializers import SalesforceOrgSerializer, ClientOrgSerializer
 from redditors.serializers import RedditorSerializer
@@ -131,6 +132,7 @@ class AccountOauthConfirmationView(APIView):
         refresh_token = reddit.auth.authorize(reddit_code)
         # Get the redditor data from API
         api_redditor = reddit.user.me()
+        pprint(vars(api_redditor))
 
         # Create or update redditor object for this client
         redditor = Redditor.objects.get_or_none(id=api_redditor.id)
@@ -138,7 +140,7 @@ class AccountOauthConfirmationView(APIView):
             instance=redditor, data=utils.get_redditor_data(api_redditor))
         serializer.is_valid(raise_exception=True)
         redditor = serializer.save()
-        logger.debug(redditor)
+        logger.info(repr(redditor))
         redditor_data = serializer.data
 
         # Then save the Salesforce org data

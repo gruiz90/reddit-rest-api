@@ -3,9 +3,7 @@ import logging
 import colorlog
 import os
 import praw
-from .renderers import CustomJSONRenderer
 from datetime import datetime
-from django.db import models
 
 
 def custom_json_exception_handler(exc, context):
@@ -82,6 +80,7 @@ class utils(object):
             'icon_img': redditor.icon_img,
             'comment_karma': redditor.comment_karma,
             'link_karma': redditor.link_karma,
+            'num_friends': redditor.num_friends,
             'is_employee': redditor.is_employee,
             'is_friend': redditor.is_friend,
             'is_mod': redditor.is_mod,
