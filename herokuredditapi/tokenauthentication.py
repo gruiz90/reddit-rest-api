@@ -1,6 +1,6 @@
 from rest_framework.authentication import TokenAuthentication
-from accounts.models import Token
 from rest_framework import exceptions
+from clients.models import Token
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -29,7 +29,7 @@ class MyTokenAuthentication(TokenAuthentication):
 
         if not token.client_org.is_active:
             raise exceptions.AuthenticationFailed(
-                _('Client account inactive or deleted.'))
+                _('Client org inactive or deleted.'))
 
         token.client_org.is_authenticated = True
         return (token.client_org, token)

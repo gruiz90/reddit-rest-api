@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
+import os
+import random
+from pprint import pprint
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
+from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 from django.utils.timezone import now
-from pprint import pprint
-import random
-import os
 
-from .serializers import SalesforceOrgSerializer, ClientOrgSerializer
-from redditors.serializers import RedditorSerializer
 from .models import SalesforceOrg, ClientOrg, Token
+from .serializers import SalesforceOrgSerializer, ClientOrgSerializer
 from redditors.models import Redditor
-from rest_framework.permissions import IsAuthenticated
+from redditors.serializers import RedditorSerializer
 from herokuredditapi.permissions import MyOauthConfirmPermission
 from herokuredditapi.tokenauthentication import MyTokenAuthentication
 
@@ -20,7 +21,7 @@ from herokuredditapi.utils import utils
 logger = utils.init_logger(__name__)
 
 
-class AccountOauthView(APIView):
+class ClientOauthView(APIView):
     """
     API endpoint that initiates the Reddit Account oauth flow
     """
@@ -44,7 +45,7 @@ class AccountOauthView(APIView):
         return Response({'oauth_url': auth_url, 'state': state}, status=status.HTTP_200_OK)
 
 
-class AccountOauthCallbackView(APIView):
+class ClientOauthCallbackView(APIView):
     """
     API endpoint that handles the callback from Reddit Oauth flow
     """
@@ -86,7 +87,7 @@ class AccountOauthCallbackView(APIView):
             raise exceptions.AuthenticationFailed(detail={'detail': msg})
 
 
-class AccountOauthConfirmationView(APIView):
+class ClientOauthConfirmationView(APIView):
     """
     API endpoint to check oauth status for a Salesforce Org (GET) 
     and handle the confirmation of a Reddit account for some Salesforce org (POST)
@@ -180,8 +181,48 @@ class AccountOauthConfirmationView(APIView):
         redditor_data.update(subscriptions=subreddits, bearer_token=token.key)
         return Response(redditor_data, status=status.HTTP_201_CREATED)
 
+class ClientView(APIView):
+    """
+    API endpoint to get authenticated Reddit account info.
+    GET request returns the redditor data.
+    Expects a valid bearer token in the Authorization header.
+    """
+    authentication_classes = [MyTokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-class AccountDisconnectView(APIView):
+    def get(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Get redditor data for authenticated reddit account...')
+
+        # If the request is authenticated correctly by the bearer token then I can get
+        # the client_org from the request.user. Return tuple from TokenAuthentication:
+        # (request.user, request.auth) = (client_org, bearer_token)
+        client_org = request.user
+        client_org.new_client_request()
+        reddit = utils.get_reddit_instance(token=client_org.reddit_token)
+
+        # Get the current authenticated reddit user data
+        reddit_user = reddit.user
+        subreddits = []
+        for sub in reddit_user.subreddits():
+            subreddits.append(
+                {'id': sub.id, 'display_name': sub.display_name,
+                 'public_description': sub.public_description,
+                 'subscribers': sub.subscribers})
+
+        api_redditor = reddit_user.me()
+        # Create or update redditor object for this client
+        redditor = Redditor.objects.get_or_none(id=api_redditor.id)
+        serializer = RedditorSerializer(
+            instance=redditor, data=utils.get_redditor_data(api_redditor))
+        serializer.is_valid(raise_exception=True)
+        redditor = serializer.save()
+        redditor_data = serializer.data
+
+        redditor_data.update(subscriptions=subreddits)
+        return Response(data=redditor_data, status=status.HTTP_200_OK)
+
+class ClientDisconnectView(APIView):
     """
     API endpoint to disconnect a Salesforce Org Client. POST request that deletes oauth token and 
     changes the Client Org to inactive status.

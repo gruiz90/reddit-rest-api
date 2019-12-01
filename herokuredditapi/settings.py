@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'encrypted_model_fields',
     'rest_framework',
-    'accounts',
+    'clients',
     'redditors',
     'subreddits',
     'user_groups',
@@ -92,6 +92,9 @@ DATABASES = {
         'PORT': '5432',
     },
 }
+# To use heroku postgress properly
+django_heroku.settings(locals())
+
 
 CACHES = {
     "default": {
@@ -141,8 +144,6 @@ USE_TZ = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = "/static/"
-
-django_heroku.settings(locals())
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,

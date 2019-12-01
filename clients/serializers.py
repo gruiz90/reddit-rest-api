@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import SalesforceOrg, ClientOrg
-from redditors.serializers import RedditorSerializer
 from redditors.models import Redditor
+from redditors.serializers import RedditorSerializer
 
 
 class ClientOrgSerializer(serializers.ModelSerializer):

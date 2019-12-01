@@ -21,9 +21,9 @@ admin.autodiscover()
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('', include('clients.urls', namespace='clients')),
     path('redditors/', include('redditors.urls', namespace='redditors')),
+	path('admin/', admin.site.urls),
     # path('subreddits/', include('subreddits.urls', namespace='subreddits')),
     # path('user_groups/', include('user_groups.urls')),
 ]
