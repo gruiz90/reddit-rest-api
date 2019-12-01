@@ -224,7 +224,7 @@ class ClientView(APIView):
 
 class ClientDisconnectView(APIView):
     """
-    API endpoint to disconnect a Salesforce Org Client. POST request that deletes oauth token and 
+    API endpoint to disconnect a Salesforce Org Client. DELETE request that deletes oauth token and 
     changes the Client Org to inactive status.
     """
     authentication_classes = [MyTokenAuthentication]

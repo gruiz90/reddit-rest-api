@@ -67,7 +67,7 @@ class utils(object):
                 client_secret=os.environ.get(
                     'REDDIT_CLIENT_SECRET'),
                 user_agent=os.environ.get('REDDIT_USER_AGENT'),
-                redirect_uri=f'{os.environ.get("DOMAIN_URL")}/oauth_callback',
+                redirect_uri=f'{os.environ.get("DOMAIN_URL")}/clients/oauth_callback',
             )
 
     @staticmethod
