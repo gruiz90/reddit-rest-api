@@ -251,3 +251,13 @@ class ClientDisconnectView(APIView):
 
         return Response(data={'detail': 'Account disconnected succesfully.'},
                         status=status.HTTP_200_OK)
+
+class ClientsView(APIView):
+    """
+    API endpoint to get all clients orgs, needs admin credentials...
+    """
+    # authentication_classes = [MyTokenAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+    # def get(self, request, Format=None):
+    #     pass
