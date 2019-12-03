@@ -200,10 +200,7 @@ class ClientView(APIView):
         reddit_user = reddit.user
         subreddits = []
         for sub in reddit_user.subreddits():
-            subreddits.append(
-                {'id': sub.id, 'display_name': sub.display_name,
-                 'public_description': sub.public_description,
-                 'subscribers': sub.subscribers})
+            subreddits.append(sub_utils.get_subreddit_data_simple(sub))
 
         api_redditor = reddit_user.me()
         # Create or update redditor object for this client

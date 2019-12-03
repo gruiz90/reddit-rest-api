@@ -413,20 +413,26 @@ Expects a valid bearer token in the Authorization header.
             "subscriptions": [
                 {
                     "id": "2qh0y",
+                    "name": "t5_2qh0y",
                     "display_name": "Python",
                     "public_description": "news about the dynamic, interpreted, interactive, object-oriented, extensible programming language Python",
-                    "subscribers": 462394
+                    "created_utc": "2008-01-25T03:14:39",
+                    "subscribers": 462396
                 },
                 {
                     "id": "2r7yd",
+                    "name": "t5_2r7yd",
                     "display_name": "learnprogramming",
                     "public_description": "A subreddit for all questions related to programming in any language.",
-                    "subscribers": 1179033
+                    "created_utc": "2009-09-24T04:25:37",
+                    "subscribers": 1179040
                 },
                 {
                     "id": "3i60n",
+                    "name": "t5_3i60n",
                     "display_name": "PrequelMemes",
                     "public_description": "Memes of the Star Wars Prequels",
+                    "created_utc": "2016-12-27T03:05:47",
                     "subscribers": 1113169
                 }
             ]
