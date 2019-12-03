@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, exceptions
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from herokuredditapi.tokenauthentication import MyTokenAuthentication
 from .models import Redditor
 from .serializers import RedditorSerializer
-from pprint import pprint
 
 from herokuredditapi.utils import utils
 logger = utils.init_logger(__name__)
@@ -26,12 +25,8 @@ class RedditorAccountView(APIView):
         logger.info('-' * 100)
         logger.info('Get redditor data for authenticated reddit account...')
 
-        # If the request is authenticated correctly by the bearer token then I can get
-        # the client_org from the request.user. Return tuple from TokenAuthentication:
-        # (request.user, request.auth) = (client_org, bearer_token)
-        client_org = request.user
-        client_org.new_client_request()
-        reddit = utils.get_reddit_instance(token=client_org.reddit_token)
+		# Gets the reddit instance from the user in request (ClientOrg)
+        reddit = utils.new_client_request(request.user)
 
         # Get the current authenticated reddit user data
         reddit_user = reddit.user

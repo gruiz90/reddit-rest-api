@@ -6,7 +6,7 @@ class RedditorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Redditor
-        fields = '__all__'
+        exclude = ['created_at', 'updated_at']
 
     def create(self, validated_data):
         return Redditor.objects.create(**validated_data)

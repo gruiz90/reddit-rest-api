@@ -7,12 +7,7 @@ from redditors.serializers import RedditorSerializer
 class ClientOrgSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientOrg
-        # fields = ['redditor', 'salesforce_org',
-        #           'connected_at',
-        #           'disconnected_at',
-        #           'last_client_request_at',
-        #           'last_client_update_at', ]
-        fields = '__all__'
+        exclude = ['created_at', 'updated_at']
         depth = 1
 
     def create(self, validated_data):
