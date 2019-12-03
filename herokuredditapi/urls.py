@@ -26,7 +26,7 @@ urlpatterns = [
 	path('', lambda request: redirect('clients/me', permanent=False)),
     path('clients/', include('clients.urls', namespace='clients')),
     path('redditors/', include('redditors.urls', namespace='redditors')),
+	path('subreddits/', include('subreddits.urls', namespace='subreddits')),
 	path('admin/', admin.site.urls),
-    # path('subreddits/', include('subreddits.urls', namespace='subreddits')),
     # path('user_groups/', include('user_groups.urls')),
 ]

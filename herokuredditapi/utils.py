@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from rest_framework.views import exception_handler
 import logging
 import colorlog
@@ -101,19 +102,3 @@ class utils(object):
 			'is_gold': redditor.is_gold,
 		}
 
-	@staticmethod
-	def get_subreddit_data(subreddit):
-		return {
-			'id': subreddit.id,
-			'name': subreddit.name,
-			'display_name': subreddit.display_name,
-			'description': subreddit.description,
-			'description_html': subreddit.description_html,
-			'public_description': subreddit.public_description,
-			'created_utc': datetime.utcfromtimestamp(subreddit.created_utc),
-			'subscribers': subreddit.subscribers,
-			'spoilers_enabled': subreddit.spoilers_enabled,
-			'over18': subreddit.over18,
-			'can_assign_link_flair': subreddit.can_assign_link_flair,
-			'can_assign_user_flair': subreddit.can_assign_user_flair,
-		}
