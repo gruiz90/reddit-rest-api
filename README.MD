@@ -307,19 +307,31 @@ Handles the autorization confirmation of a Reddit account for a Salesforce organ
             "is_gold": false,
             "subscriptions": [
                 {
-                    "id": "2qh33",
-                    "display_name": "funny",
-                    "public_description": "Welcome to r/Funny: reddit's largest humour depository",
-                    "subscribers": 27353962
+                    "id": "2qh0y",
+                    "name": "t5_2qh0y",
+                    "display_name": "Python",
+                    "public_description": "news about the dynamic, interpreted, interactive, object-oriented, extensible programming language Python",
+                    "created_utc": "2008-01-25T03:14:39",
+                    "subscribers": 462393
                 },
                 {
                     "id": "2r7yd",
+                    "name": "t5_2r7yd",
                     "display_name": "learnprogramming",
                     "public_description": "A subreddit for all questions related to programming in any language.",
-                    "subscribers": 1176314
+                    "created_utc": "2009-09-24T04:25:37",
+                    "subscribers": 1179032
+                },
+                {
+                    "id": "3i60n",
+                    "name": "t5_3i60n",
+                    "display_name": "PrequelMemes",
+                    "public_description": "Memes of the Star Wars Prequels",
+                    "created_utc": "2016-12-27T03:05:47",
+                    "subscribers": 1113167
                 }
             ],
-            "bearer_token": "30ad9388f15b1da7ef6c08b03721a1f08b5426fa"
+            "bearer_token": "f8ba1f14f78b010aacc2a3c26abba5323445ba41"
         }
     }
     ```
@@ -400,16 +412,22 @@ Expects a valid bearer token in the Authorization header.
             "is_gold": false,
             "subscriptions": [
                 {
-                    "id": "2qh33",
-                    "display_name": "funny",
-                    "public_description": "Welcome to r/Funny: reddit's largest humour depository",
-                    "subscribers": 27353962
+                    "id": "2qh0y",
+                    "display_name": "Python",
+                    "public_description": "news about the dynamic, interpreted, interactive, object-oriented, extensible programming language Python",
+                    "subscribers": 462394
                 },
                 {
                     "id": "2r7yd",
                     "display_name": "learnprogramming",
                     "public_description": "A subreddit for all questions related to programming in any language.",
-                    "subscribers": 1176314
+                    "subscribers": 1179033
+                },
+                {
+                    "id": "3i60n",
+                    "display_name": "PrequelMemes",
+                    "public_description": "Memes of the Star Wars Prequels",
+                    "subscribers": 1113169
                 }
             ]
         }
