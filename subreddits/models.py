@@ -7,9 +7,9 @@ class Subreddit(models.Model):
 	id = models.CharField(max_length=64, primary_key=True,
 						  help_text='The ID of the subreddit.')
 	name = models.CharField(
-		max_length=256, help_text='Fullname of the subreddit.', db_index=True)
+		max_length=256, help_text='Fullname of the subreddit.')
 	display_name = models.CharField(
-		max_length=256, help_text='Name of the subreddit.')
+		max_length=256, help_text='Name of the subreddit.', db_index=True)
 	description = models.TextField(
 		null=True, help_text='Subreddit description, in Markdown.')
 	description_html = models.TextField(null=True,
