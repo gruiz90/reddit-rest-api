@@ -37,7 +37,10 @@ class ConnectSubreddit(APIView):
         client_org = request.user
         reddit = utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = reddit.subreddit(name)
+        subreddit = sub_utils.get_sub_if_exists(name, reddit)
+        if subreddit is None:
+                raise exceptions.NotFound(
+                    detail={'detail': f'No subreddit exists with the name: {name}.'})
 
         logger.info(f'Connecting to Subreddit {subreddit.name}')
         if not subreddit.user_is_subscriber:
@@ -57,7 +60,7 @@ class ConnectSubreddit(APIView):
         # Show info about the subreddit obj in the log
         logger.info(repr(subreddit_obj))
 
-        return Response(subreddit_data, status=status.HTTP_200_OK)
+        return Response(subreddit_data, status=status.HTTP_201_CREATED)
 
 
 class DisconnectSubreddit(APIView):
@@ -107,7 +110,10 @@ class SubredditView(APIView):
         client_org = request.user
         reddit = utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = reddit.subreddit(name)
+        subreddit = sub_utils.get_sub_if_exists(name, reddit)
+        if subreddit is None:
+                raise exceptions.NotFound(
+                    detail={'detail': f'No subreddit exists with the name: {name}.'})
 
         # Get data I need from subreddit instance
         subreddit_data = sub_utils.get_subreddit_data(subreddit)
@@ -157,14 +163,17 @@ class SubredditRules(APIView):
         client_org = request.user
         reddit = utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = reddit.subreddit(name)
+        subreddit = sub_utils.get_sub_if_exists(name, reddit)
+        if subreddit is None:
+                raise exceptions.NotFound(
+                    detail={'detail': f'No subreddit exists with the name: {name}.'})
 
         return Response(subreddit.rules(), status=status.HTTP_200_OK)
 
 
 class SubredditSubscribe(APIView):
     """
-    API endpoint to subscribe a subreddit by the name
+    API endpoint to subscribe a Salesforce org client to a subreddit by the name.
     """
 
     authentication_classes = [MyTokenAuthentication]
@@ -178,7 +187,11 @@ class SubredditSubscribe(APIView):
         client_org = request.user
         reddit = utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = reddit.subreddit(name)
+        subreddit = sub_utils.get_sub_if_exists(name, reddit)
+        if subreddit is None:
+                raise exceptions.NotFound(
+                    detail={'detail': f'No subreddit exists with the name: {name}.'})
+
         if not subreddit.user_is_subscriber:
             subreddit.subscribe()
 
@@ -189,7 +202,7 @@ class SubredditSubscribe(APIView):
 
 class SubredditUnsubscribe(APIView):
     """
-    API endpoint to unsubscribe a subreddit by the name
+    API endpoint to unsubscribe a Salesforce org client from a subreddit by the name.
     """
 
     authentication_classes = [MyTokenAuthentication]
@@ -203,7 +216,11 @@ class SubredditUnsubscribe(APIView):
         client_org = request.user
         reddit = utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = reddit.subreddit(name)
+        subreddit = sub_utils.get_sub_if_exists(name, reddit)
+        if subreddit is None:
+                raise exceptions.NotFound(
+                    detail={'detail': f'No subreddit exists with the name: {name}.'})
+
         if subreddit.user_is_subscriber:
             subreddit.unsubscribe()
 

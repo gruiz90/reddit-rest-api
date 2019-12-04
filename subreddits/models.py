@@ -11,10 +11,10 @@ class Subreddit(models.Model):
 	display_name = models.CharField(
 		max_length=256, help_text='Name of the subreddit.', db_index=True)
 	description = models.TextField(
-		null=True, help_text='Subreddit description, in Markdown.')
-	description_html = models.TextField(null=True,
+		null=True, blank=True, help_text='Subreddit description, in Markdown.')
+	description_html = models.TextField(null=True, blank=True,
 										help_text='Subreddit description, in HTML.')
-	public_description = models.TextField(null=True,
+	public_description = models.TextField(null=True, blank=True,
 										  help_text=('Description of the subreddit, '
 													 'shown in searches and on the'
 													 '"You must be invited to visit this community"'
