@@ -561,9 +561,9 @@ All the endpoints provided to interact with Subreddits for an authorized client.
 * [Unsubscribe to a Subreddit](#subreddit-unsubscribe)
 * [Subreddit Rules](#subreddit-rules)
 
-* **Common Error Responses for Subreddits endpoints:**
+### Common Error Responses for Subreddits endpoints:
 
-  * **Code:** 401 Unauthorized <br/>
+* **Code:** 401 Unauthorized <br/>
     **Content:** <br/>
 
     ```json
@@ -579,7 +579,7 @@ All the endpoints provided to interact with Subreddits for an authorized client.
 
     OR
 
-  * **Code:** 401 Unauthorized <br/>
+* **Code:** 401 Unauthorized <br/>
     **Content:** <br/>
 
     ```json
@@ -595,7 +595,7 @@ All the endpoints provided to interact with Subreddits for an authorized client.
 
     OR
 
-    * **Code:** 404 Not Found <br/>
+* **Code:** 404 Not Found <br/>
     **Content:** <br/>
 
     ```json
