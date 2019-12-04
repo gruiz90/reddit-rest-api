@@ -36,7 +36,9 @@ Initiates the Reddit Account oauth flow.
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/clients/oauth`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/clients/oauth
+    ```
 
 * **Success Response:**
 
@@ -77,7 +79,9 @@ Handles the callback from the Reddit Oauth flow. Only used when the user 'allows
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/clients/oauth_callback?state=11562&code=_TvTWeuxQI8YQ_eZE-7bfbc0QmI`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/clients/oauth_callback?state=11562&code=_TvTWeuxQI8YQ_eZE-7bfbc0QmI
+    ```
 
 * **Success Response:**
 
@@ -163,7 +167,9 @@ Check oauth status for a Salesforce organization client.
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/clients/oauth_confirm?state=11562`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/clients/oauth_confirm?state=11562
+    ```
 
 * **Success Response:**
 
@@ -283,8 +289,10 @@ Handles the autorization confirmation of a Reddit account for a Salesforce organ
 
 * **Sample Call:**
 
-    `http POST https://reddit-rest-api.herokuapp.com/clients/oauth_confirm?state=11562 \`
-    `org_id=testorgid org_name=test org_url=http://test.com package_version=1.0`
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/clients/oauth_confirm?state=11562 \
+    org_id=testorgid org_name=test org_url=http://test.com package_version=1.0
+    ```
 
 * **Success Response:**
 
@@ -388,8 +396,10 @@ Expects a valid bearer token in the Authorization header.
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/clients/me \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/clients/me \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -489,8 +499,10 @@ Expects a valid bearer token in the Authorization header.
 
 * **Sample Call:**
 
-    `http DELETE https://reddit-rest-api.herokuapp.com/clients/me \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http DELETE https://reddit-rest-api.herokuapp.com/clients/me \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -611,8 +623,10 @@ Endpoint to get the list of subreddits subscriptions for the client.
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/subreddits \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/subreddits \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -658,8 +672,10 @@ Endpoint to get the Subreddit data by the name provided in the URL.
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/subreddits/python \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/subreddits/python \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -699,8 +715,10 @@ Endpoint that connects a Salesforce org client to a subreddit by the name. This 
 
 * **Sample Call:**
 
-    `http POST https://reddit-rest-api.herokuapp.com/subreddits/python/connect \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/subreddits/python/connect \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -740,8 +758,10 @@ Endpoint to disconnect a Salesforce org client to a Subreddit by the name. This 
 
 * **Sample Call:**
 
-    `http POST https://reddit-rest-api.herokuapp.com/subreddits/python/disconnect \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/subreddits/python/disconnect \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -770,8 +790,10 @@ Endpoint to subscribe a Salesforce org client to a subreddit by the name.
 
 * **Sample Call:**
 
-    `http POST https://reddit-rest-api.herokuapp.com/subreddits/python/subscribe \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/subreddits/python/subscribe \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -800,8 +822,10 @@ Endpoint to unsubscribe a Salesforce org client from a subreddit by the name.
 
 * **Sample Call:**
 
-    `http POST https://reddit-rest-api.herokuapp.com/subreddits/python/unsubscribe \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/subreddits/python/unsubscribe \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
@@ -830,8 +854,10 @@ Endpoint to get the rules of a subreddit by the name.
 
 * **Sample Call:**
 
-    `http GET https://reddit-rest-api.herokuapp.com/subreddits/python/rules \`
-    `'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'`
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/subreddits/python/rules \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
 
 * **Success Response:**
 
