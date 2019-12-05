@@ -173,7 +173,7 @@ class ClientOauthConfirmationView(APIView):
         reddit_user = reddit.user
         subreddits = []
         for sub in reddit_user.subreddits():
-            subreddits.append(sub_utils.get_subreddit_data_simple(sub))
+            subreddits.append(sub_utils.get_subreddit_data(sub))
 
         # Return redditor data + subscriptions + token generated
         redditor_data.update(subscriptions=subreddits, bearer_token=token.key)
@@ -200,7 +200,7 @@ class ClientView(APIView):
         reddit_user = reddit.user
         subreddits = []
         for sub in reddit_user.subreddits():
-            subreddits.append(sub_utils.get_subreddit_data_simple(sub))
+            subreddits.append(sub_utils.get_subreddit_data(sub))
 
         api_redditor = reddit_user.me()
         # Create or update redditor object for this client

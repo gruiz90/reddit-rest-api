@@ -11,4 +11,5 @@ urlpatterns = [
 	path('<str:name>/rules', views.SubredditRules.as_view()),
 	path('<str:name>/subscribe', views.SubredditSubscribe.as_view()),
 	path('<str:name>/unsubscribe', views.SubredditUnsubscribe.as_view()),
+	path('<str:name>/submissions', views.SubredditSubmissions.as_view()),
 ]
