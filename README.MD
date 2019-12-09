@@ -1183,7 +1183,7 @@ Endpoint to get the rules of a subreddit by the name.
     }
     ```
 
-### Subreddits Submissions
+### Subreddit Submissions
 
 Endpoint to get a Subreddit's Submissions. It returns a max of 5 submissions per request. Need to use an offset to get the rest in different requests. Param time_filter only used when sort=[controversial|top].
 
