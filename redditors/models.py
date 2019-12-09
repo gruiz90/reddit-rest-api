@@ -17,7 +17,7 @@ class Redditor(models.Model):
     link_karma = models.IntegerField(
         default=0, help_text='The link karma for the Redditor.')
     num_friends = models.PositiveIntegerField(
-        'friends count', default=0, help_text='Count of friends.')
+        'friends count', null=True, default=0, help_text='Count of friends.')
     is_employee = models.BooleanField(null=True,
                                       help_text='Whether or not the Redditor is a Reddit employee.')
     is_friend = models.BooleanField(

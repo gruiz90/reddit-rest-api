@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import RedditorAccountView
+import redditors.views as views
 
 app_name = 'redditors'
 
 urlpatterns = [
-    path('me', RedditorAccountView.as_view()),
+    path('', views.RedditorAccountView.as_view()),
+	path('<str:name>', views.RedditorView.as_view()),
 ]

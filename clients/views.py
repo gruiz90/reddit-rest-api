@@ -16,10 +16,11 @@ from redditors.models import Redditor
 from redditors.serializers import RedditorSerializer
 from herokuredditapi.permissions import MyOauthConfirmPermission
 from herokuredditapi.tokenauthentication import MyTokenAuthentication
-from subreddits.utils import sub_utils
+from subreddits.utils import SubredditsUtils
+from redditors.utils import RedditorsUtils
 
-from herokuredditapi.utils import utils
-logger = utils.init_logger(__name__)
+from herokuredditapi.utils import Utils
+logger = Utils.init_logger(__name__)
 
 
 class ClientOauthView(APIView):
@@ -38,7 +39,7 @@ class ClientOauthView(APIView):
         logger.debug(f'Saving oauth_{state} in cache with status pending')
 
         # Obtain authorization URL
-        reddit = reddit = utils.get_reddit_instance()
+        reddit = reddit = Utils.get_reddit_instance()
         # scopes = ['identity', 'mysubreddits', 'read', 'subscribe', 'vote']
         auth_url = reddit.auth.url(['*'], state, 'permanent')
         logger.debug(f'Reddit auth url: {auth_url}')
@@ -137,7 +138,7 @@ class ClientOauthConfirmationView(APIView):
         cache.delete(f'oauth_{state}')
         # Get the reddit code and generate the refresh_token
         reddit_code = oauth_data['code']
-        reddit = utils.get_reddit_instance()
+        reddit = Utils.get_reddit_instance()
         refresh_token = reddit.auth.authorize(reddit_code)
         # Get the redditor data from API
         api_redditor = reddit.user.me()
@@ -146,7 +147,7 @@ class ClientOauthConfirmationView(APIView):
         # Create or update redditor object for this client
         redditor = Redditor.objects.get_or_none(id=api_redditor.id)
         serializer = RedditorSerializer(
-            instance=redditor, data=utils.get_redditor_data(api_redditor))
+            instance=redditor, data=RedditorsUtils.get_redditor_data(api_redditor))
         serializer.is_valid(raise_exception=True)
         redditor = serializer.save()
         logger.info(repr(redditor))
@@ -173,7 +174,7 @@ class ClientOauthConfirmationView(APIView):
         reddit_user = reddit.user
         subreddits = []
         for sub in reddit_user.subreddits():
-            subreddits.append(sub_utils.get_subreddit_data(sub))
+            subreddits.append(SubredditsUtils.get_subreddit_data_simple(sub))
 
         # Return redditor data + subscriptions + token generated
         redditor_data.update(subscriptions=subreddits, bearer_token=token.key)
@@ -194,19 +195,19 @@ class ClientView(APIView):
         logger.info('Get redditor data for authenticated reddit account...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        reddit = utils.new_client_request(request.user)
+        reddit = Utils.new_client_request(request.user)
 
         # Get the current authenticated reddit user data
         reddit_user = reddit.user
         subreddits = []
         for sub in reddit_user.subreddits():
-            subreddits.append(sub_utils.get_subreddit_data(sub))
+            subreddits.append(SubredditsUtils.get_subreddit_data_simple(sub))
 
         api_redditor = reddit_user.me()
         # Create or update redditor object for this client
         redditor = Redditor.objects.get_or_none(id=api_redditor.id)
         serializer = RedditorSerializer(
-            instance=redditor, data=utils.get_redditor_data(api_redditor))
+            instance=redditor, data=RedditorsUtils.get_redditor_data(api_redditor))
         serializer.is_valid(raise_exception=True)
         redditor = serializer.save()
         redditor_data = serializer.data

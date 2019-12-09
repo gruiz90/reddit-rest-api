@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
 from herokuredditapi.tokenauthentication import MyTokenAuthentication
-from .utils import sub_utils
+from .utils import SubredditsUtils
+from submissions.utils import SubmissionsUtils
 
-from herokuredditapi.utils import utils
-logger = utils.init_logger(__name__)
+from herokuredditapi.utils import Utils
+logger = Utils.init_logger(__name__)
 
 
 class ConnectSubreddit(APIView):
@@ -35,12 +36,12 @@ class ConnectSubreddit(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = sub_utils.get_sub_if_exists(name, reddit)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
 		if subreddit is None:
-				raise exceptions.NotFound(
-					detail={'detail': f'No subreddit exists with the name: {name}.'})
+			raise exceptions.NotFound(
+				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
 		logger.info(f'Connecting to Subreddit {subreddit.name}')
 		if not subreddit.user_is_subscriber:
@@ -49,11 +50,11 @@ class ConnectSubreddit(APIView):
 		logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
 
 		# Get data I need from subreddit instance
-		subreddit_data = sub_utils.get_subreddit_data(subreddit)
+		subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
 
 		# Here for now I'll just save the subreddit_data in a Subreddit Model object
 		# But I need to enqueue this into a redis queue, send the data to user as fast as possible
-		subreddit_obj = sub_utils.create_or_update(subreddit_data)
+		subreddit_obj = SubredditsUtils.create_or_update(subreddit_data)
 		# Add the client_org connection to the object
 		subreddit_obj.clients.add(client_org)
 		# Show info about the subreddit obj in the log
@@ -77,7 +78,7 @@ class DisconnectSubreddit(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
 		subreddit = reddit.subreddit(name)
 
@@ -107,17 +108,17 @@ class SubredditView(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = sub_utils.get_sub_if_exists(name, reddit)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
 		if subreddit is None:
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
 		# Get data I need from subreddit instance
-		subreddit_data = sub_utils.get_subreddit_data(subreddit)
+		subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
 		# Enqueue this in a redis queue job later
-		sub_utils.create_or_update(subreddit_data)
+		SubredditsUtils.create_or_update(subreddit_data)
 
 		return Response(subreddit_data, status=status.HTTP_200_OK)
 
@@ -136,12 +137,12 @@ class SubredditSubscriptions(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 
 		reddit_user = reddit.user
 		subreddits = []
 		for sub in reddit_user.subreddits():
-			subreddits.append(sub_utils.get_subreddit_data(sub))
+			subreddits.append(SubredditsUtils.get_subreddit_data_simple(sub))
 
 		return Response({'subscriptions': subreddits}, status=status.HTTP_200_OK)
 
@@ -160,9 +161,9 @@ class SubredditRules(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = sub_utils.get_sub_if_exists(name, reddit)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
 		if subreddit is None:
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
@@ -184,9 +185,9 @@ class SubredditSubscribe(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = sub_utils.get_sub_if_exists(name, reddit)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
 		if subreddit is None:
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
@@ -213,9 +214,9 @@ class SubredditUnsubscribe(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = sub_utils.get_sub_if_exists(name, reddit)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
 		if subreddit is None:
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
@@ -230,9 +231,9 @@ class SubredditUnsubscribe(APIView):
 class SubredditSubmissions(APIView):
 	"""
 	API endpoint to get a Subreddit submissions. subreddits/<str:name>/submissions
+	It returns a max of 5 submissions per request. Uses offset to get the rest in different request.
 	query_params: sort=[controversial|gilded|hot|new|rising|top] (default=hot)
 				  time_filter=[all|day|hour|month|week|year] (default=all)
-				  limit=[0<int<11] (default=5)
 				  offset=[0<=int<11] (default=0)
 	time_filter only used when sort=[controversial|top]
 	"""
@@ -243,7 +244,7 @@ class SubredditSubmissions(APIView):
 	__sortings = ['controversial', 'gilded', 'hot', 'new', 'rising', 'top']
 	__time_filters = ['all', 'hour', 'month', 'week', 'year']
 
-	def __validate_query_params(self, sort, time_filter, limit, offset):
+	def __validate_query_params(self, sort, time_filter, offset):
 		if sort not in self.__sortings:
 			raise exceptions.ParseError(
                 detail={'detail': f'Sort type {sort} invalid.'})
@@ -252,25 +253,15 @@ class SubredditSubmissions(APIView):
 				raise exceptions.ParseError(
                 	detail={'detail': f'Time filter {time_filter} invalid.'})
 		try:
-			limit = int(limit)
-			logger.info(limit)
-			if not 0 < limit < 6:
-				raise exceptions.ParseError(
-					detail={'detail': f'Limit {limit} outside allowed range (0<limit<6).'})
-		except ValueError:
-			raise exceptions.ParseError(
-					detail={'detail': f'limit parameter must be an integer.'})
-
-		try:
 			offset = int(offset)
-			if not 0 <= offset:
+			if offset < 0:
 				raise exceptions.ParseError(
-					detail={'detail': f'Offset {offset} outside allowed range (0<=offset).'})
+					detail={'detail': f'Offset {offset} outside allowed range (offset>=0).'})
 		except ValueError:
 			raise exceptions.ParseError(
 					detail={'detail': f'offset parameter must be an integer.'})
 
-		return limit, offset
+		return offset
 
 
 	def __get_submissions(self, subreddit, sort, time_filter, limit):
@@ -294,33 +285,31 @@ class SubredditSubmissions(APIView):
 
 		# Gets the reddit instance from the user in request (ClientOrg)
 		client_org = request.user
-		reddit = utils.new_client_request(client_org)
+		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = sub_utils.get_sub_if_exists(name, reddit)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
 		if subreddit is None:
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
 		sort = request.query_params.get('sort', 'hot')
 		time_filter = request.query_params.get('time_filter', 'all')
-		limit = request.query_params.get('limit', 5)
 		offset = request.query_params.get('offset', 0)
 
-		limit, offset = self.__validate_query_params(sort, time_filter, limit, offset)
+		offset = self.__validate_query_params(sort, time_filter, offset)
 		logger.info(f'Sort type: {sort}')
 		logger.info(f'Time filter: {time_filter}')
-		logger.info(f'limit: {limit}')
 		logger.info(f'offset: {offset}')
 
 		# Get submissions generator according to query_params and with the limit + offset?
-		submissions_generator = self.__get_submissions(subreddit, sort, time_filter, limit + offset)
+		submissions_generator = self.__get_submissions(subreddit, sort, time_filter, offset + 5)
 
 		submissions = []
 		for index, sub in enumerate(submissions_generator, start=1):
 			if index > offset:
-				submissions.append(sub_utils.get_submission_data(sub))
+				submissions.append(SubmissionsUtils.get_submission_data_simple(sub))
 		logger.info(f'Total submissions: {len(submissions)}')
 
 		return Response({'submissions': submissions, 'sort': sort,
-                   'time_filter': time_filter, 'limit': limit, 'offset': offset},
+                   'time_filter': time_filter, 'offset': offset},
                   status=status.HTTP_200_OK)

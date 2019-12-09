@@ -25,7 +25,7 @@ def custom_json_exception_handler(exc, context):
 TESTING_MODE = os.environ.get('LOGLEVEL_DEBUG', False)
 
 
-class utils(object):
+class Utils(object):
 	@staticmethod
 	def init_logger(dunder_name) -> logging.Logger:
 		log_format = (
@@ -83,22 +83,5 @@ class utils(object):
 		# the client_org from the request.user. Return tuple from TokenAuthentication:
 		# (request.user, request.auth) = (client_org, bearer_token)
 		client_org.new_client_request()
-		return utils.get_reddit_instance(token=client_org.reddit_token)
-
-	@staticmethod
-	def get_redditor_data(redditor):
-		return {
-			'id': redditor.id,
-			'name': redditor.name,
-			'created_utc': datetime.utcfromtimestamp(redditor.created_utc),
-			'has_verified_email': redditor.has_verified_email,
-			'icon_img': redditor.icon_img,
-			'comment_karma': redditor.comment_karma,
-			'link_karma': redditor.link_karma,
-			'num_friends': redditor.num_friends,
-			'is_employee': redditor.is_employee,
-			'is_friend': redditor.is_friend,
-			'is_mod': redditor.is_mod,
-			'is_gold': redditor.is_gold,
-		}
+		return Utils.get_reddit_instance(token=client_org.reddit_token)
 

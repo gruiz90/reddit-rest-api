@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'clients',
     'redditors',
     'subreddits',
+	'submissions',
     'user_groups',
 ]
 

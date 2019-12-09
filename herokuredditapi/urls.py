@@ -27,6 +27,8 @@ urlpatterns = [
     path('clients/', include('clients.urls', namespace='clients')),
     path('redditors/', include('redditors.urls', namespace='redditors')),
 	path('subreddits/', include('subreddits.urls', namespace='subreddits')),
+	path('submissions/', include('submissions.urls', namespace='submissions')),
+	path('comments/', include('comments.urls', namespace='comments')),
 	path('admin/', admin.site.urls),
     # path('user_groups/', include('user_groups.urls')),
 ]
