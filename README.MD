@@ -8,8 +8,11 @@ Hosted in: https://reddit-rest-api.herokuapp.com/
 ## API important routes
 
 * [Authorization](#clients-authorization)
-* [Subreddits](#subreddits)
 * [Redditors](#redditors)
+* [Subreddits](#subreddits)
+* [Submissions](#submissions)
+* [Comments](#comments)
+
 
 ## Clients Authorization
 
@@ -549,6 +552,165 @@ Expects a valid bearer token in the Authorization header.
     }
     ```
 
+## Redditors
+
+All the endpoints provided to interact with Redditors for an authorized client.
+
+* [My Redditor Information](#my-redditor-info)
+* [Redditor Info](#redditor-information)
+
+### Common Error Responses for Redditors endpoints:
+
+* **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Authentication credentials were not provided."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+* **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Invalid token."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+* **Code:** 404 Not Found <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 404,
+            "messages": [
+                "detail: No redditor exists with the name: ???."
+            ]
+        }
+    }
+    ```
+
+### My Redditor Information
+
+Endpoint to get authorized reddit account redditor information and subscriptions.
+
+* **URL**
+
+    `/redditors`
+
+* **Method:**
+
+    `GET`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/redditors/sfdctest \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "id": "4rfkxa54",
+            "name": "sfdctest",
+            "created_utc": "2019-10-31T22:22:45Z",
+            "has_verified_email": true,
+            "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+            "comment_karma": 0,
+            "link_karma": 1,
+            "num_friends": 0,
+            "is_employee": false,
+            "is_friend": false,
+            "is_mod": false,
+            "is_gold": false,
+            "subscriptions": [
+                {
+                    "id": "2r7yd",
+                    "name": "t5_2r7yd",
+                    "display_name": "learnprogramming",
+                    "public_description": "A subreddit for all questions related to programming in any language.",
+                    "created_utc": "2009-09-24T04:25:37",
+                    "subscribers": 1186419
+                },
+                {
+                    "id": "3i60n",
+                    "name": "t5_3i60n",
+                    "display_name": "PrequelMemes",
+                    "public_description": "Memes of the Star Wars Prequels",
+                    "created_utc": "2016-12-27T03:05:47",
+                    "subscribers": 1120853
+                }
+            ]
+        }
+    }
+    ```
+
+### Redditor Information
+
+Endpoint to get the Redditor data by the name provided in the URL.
+
+* **URL**
+
+    `/redditors/<str:name>`
+
+* **Method:**
+
+    `GET`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/redditors/sfdctest \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "id": "4rfkxa54",
+            "name": "sfdctest",
+            "created_utc": "2019-10-31T22:22:45",
+            "has_verified_email": true,
+            "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+            "comment_karma": 0,
+            "link_karma": 1,
+            "num_friends": 0,
+            "is_employee": false,
+            "is_friend": false,
+            "is_mod": false,
+            "is_gold": false
+        }
+    }
+    ```
+
 ## Subreddits
 
 All the endpoints provided to interact with Subreddits for an authorized client.
@@ -603,7 +765,7 @@ All the endpoints provided to interact with Subreddits for an authorized client.
         "error": {
             "code": 404,
             "messages": [
-                "detail: No subreddit exists with the name: notexistentsubredditname."
+                "detail: No subreddit exists with the name: ???."
             ]
         }
     }
@@ -1016,6 +1178,567 @@ Endpoint to get the rules of a subreddit by the name.
                     "reasonText": ""
                 }
             ]
+        }
+    }
+    ```
+
+### Subreddits Submissions
+
+Endpoint to get a Subreddit's Submissions. It returns a max of 5 submissions per request. Need to use an offset to get the rest in different requests. Param time_filter only used when sort=[controversial|top].
+
+* **URL**
+
+    `/subreddits/<str:name>/submissions`
+
+* **Method:**
+
+    `GET`
+
+* **URL Params**
+
+    **Optional:**
+
+    `sort=[hot|controversial|gilded|new|rising|top] (default=hot)`
+    `time_filter=[all|day|hour|month|week|year] (default=all)`
+    `offset=[0<=int] (default=0)`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/subreddits/python/submissions?sort=top&time_filter=month&limit=3 \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "submissions": [
+                {
+                    "id": "e2234a",
+                    "name": "t3_e2234a",
+                    "title": "hashtags",
+                    "created_utc": "2019-11-26T18:26:29",
+                    "author_name": "Williamismijnnaam",
+                    "num_comments": 120,
+                    "score": 2830,
+                    "url": "https://i.redd.it/8ss44ve160141.jpg"
+                },
+                {
+                    "id": "dz81ed",
+                    "name": "t3_dz81ed",
+                    "title": "My 12 year old just shouted \"Dad I made a copy of flappy birds\". My response \"Yeah right!\". To my amazement he did. I genuinely didn't even know he was doing this. He used Python and PyGame apparently.",
+                    "created_utc": "2019-11-20T20:47:51",
+                    "author_name": "doggertron_",
+                    "num_comments": 202,
+                    "score": 2501,
+                    "url": "https://i.redd.it/7sb9ffimlwz31.png"
+                },
+                {
+                    "id": "dvw09b",
+                    "name": "t3_dvw09b",
+                    "title": "BrachioGraph, an ultra-cheap Python-powered drawing machine",
+                    "created_utc": "2019-11-13T18:34:37",
+                    "author_name": "EvilDMP",
+                    "num_comments": 59,
+                    "score": 2149,
+                    "url": "https://v.redd.it/w4f0q6tbzhy31"
+                },
+                {
+                    "id": "e1ldoz",
+                    "name": "t3_e1ldoz",
+                    "title": "A fitting curve that \"boings\" into place (and a digression into spring-mass-dampers, vibration and control theory, and integral transforms)",
+                    "created_utc": "2019-11-25T19:41:33",
+                    "author_name": "Chemomechanics",
+                    "num_comments": 55,
+                    "score": 2116,
+                    "url": "https://i.redd.it/tp80yhyrwv041.gif"
+                },
+                {
+                    "id": "dxq4ea",
+                    "name": "t3_dxq4ea",
+                    "title": "This is one of the most interesting outputs of the particle simulation :)",
+                    "created_utc": "2019-11-17T18:16:00",
+                    "author_name": "chrismit3s",
+                    "num_comments": 125,
+                    "score": 1962,
+                    "url": "https://v.redd.it/ib5nkw7ifaz31"
+                }
+            ],
+            "sort": "top",
+            "time_filter": "month",
+            "offset": 0
+        }
+    }
+    ```
+
+## Submissions
+
+All the endpoints provided to interact with Submissions for an authorized client.
+
+* [Submission Information](#submission-information)
+* [Submission Comments](#submission-comments)
+* [Submission Post Vote](#submission-vote)
+
+### Common Error Responses for Submissions endpoints:
+
+* **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Authentication credentials were not provided."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+* **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Invalid token."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+* **Code:** 404 Not Found <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 404,
+            "messages": [
+                "detail: No submission exists with the id: ???."
+            ]
+        }
+    }
+    ```
+
+### Submission Information
+
+Endpoint to get the Submission data by the id provided in the URL.
+
+* **URL**
+
+    `/submissions/<str:id>`
+
+* **Method:**
+
+    `GET`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/submissions/e8ge80 \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "id": "e8ge80",
+            "name": "t3_e8ge80",
+            "title": "PRAW - Reddit API",
+            "created_utc": "2019-12-09T21:31:13",
+            "author": {
+                "id": "12pod7",
+                "name": "NewbieWithARuby",
+                "created_utc": "2016-11-10T01:47:15",
+                "icon_img": "https://www.redditstatic.com/avatars/avatar_default_08_FF66AC.png",
+                "comment_karma": 97946,
+                "link_karma": 6211
+            },
+            "num_comments": 0,
+            "score": 1,
+            "upvote_ratio": 1.0,
+            "permalink": "/r/Python/comments/e8ge80/praw_reddit_api/",
+            "url": "https://www.reddit.com/r/Python/comments/e8ge80/praw_reddit_api/",
+            "is_original_content": false,
+            "is_self": true,
+            "selftext": "I'm having some trouble with PRAW, the Reddit API.\n\nIf I get a list of the 100 'Hot' posts on r/python using:\n\n>sub = r.subreddit('python')\n\n>posts = sub.hot(limit=100)\n\n\nAnd then I take one of those posts, i.e.\n\n>posts[0]\n\n>*Output*》Submission(id='a1b2c3')\n\nThen the post has a number of attributes, specifically the one I'm interested in being:\n\n>posts[0].media\n\nBut if I instead do:\n\n>some_post = r.submission(id='a1b2c3')\n\n>*Output*》Submission(id='a1b2c3')\n\nI no longer get the attribute .media available.\n\nWhat am I doing wrong here?",
+            "clicked": false,
+            "distinguished": null,
+            "edited": false,
+            "locked": false,
+            "stickied": false,
+            "spoiler": false,
+            "over_18": false
+        }
+    }
+    ```
+
+### Submission Comments
+
+Endpoint to get a Submission's comments. It returns a max of 20 comments per request. Uses offset to get the rest in different requests. The flat parameter is used to retrieve comments with lower level than top level. The order of the list with flat=True is [Comments_Level1, Comments_Level2, ..., Comments_LevelN]
+
+* **URL**
+
+    `/submissions/<str:id>/comments`
+
+* **Method:**
+
+    `GET`
+
+* **URL Params**
+
+    **Optional:**
+
+    `sort=[best|top|new|controversial|old|q&a] (default=best)`
+    `limit=[0<int<21] (default=10)`
+    `offset=[0<=int] (default=0)`
+    `flat=[True|False] (default=False)`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/submissions/e7t00m/comments?sort=top&limit=2&offset=3 \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "comments": [
+                {
+                    "id": "fa5o7ul",
+                    "body": "In qr-filetransfer/qr-filetransfer why is there a class inside a function ? What is the benefit of doing this ?",
+                    "created_utc": "2019-12-08T14:55:55",
+                    "author_name": "reJectedeuw",
+                    "score": 13,
+                    "subreddit_id": "t5_2qh0y",
+                    "link_id": "t3_e7t00m",
+                    "parent_id": "t3_e7t00m",
+                    "has_replies": true
+                },
+                {
+                    "id": "fa58he7",
+                    "body": "What is the advantage of this over something like KDE Connect? Lighter (I assume) and no need to pair, but you need scan a QR code and to use a web browser to pick flies which looks a bit clunky to me.",
+                    "created_utc": "2019-12-08T13:44:08",
+                    "author_name": "graemep",
+                    "score": 21,
+                    "subreddit_id": "t5_2qh0y",
+                    "link_id": "t3_e7t00m",
+                    "parent_id": "t3_e7t00m",
+                    "has_replies": true
+                }
+            ],
+            "sort": "top",
+            "limit": 2,
+            "offset": 3,
+            "flat": false
+        }
+    }
+    ```
+
+### Submission Vote
+
+Endpoint to post a vote for a submission by the id provided in the url. Passing vote_value = [-1|0|1] a downvote, clear_vote, upvote action is executed for the submission.
+
+* **URL**
+
+    `/submissions/<str:id>/vote`
+
+* **Method:**
+
+    `POST`
+
+* **Data Params**
+
+    **Required:**
+
+    `vote_value=[-1<=int<=1]`
+
+    e.g:
+
+    ```json
+    {
+        "vote_value": 1
+    }
+    ```
+
+* **Sample Call:**
+
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/submissions/e8a0c7/vote \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+    vote_value=1
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "detail": "Vote action 'Upvote' successful for submission with id: e8a0c7!"
+        }
+    }
+    ```
+
+## Comments
+
+All the endpoints provided to interact with Comments for an authorized client.
+
+* [Comment Information](#comment-information)
+* [Comment Replies](#comment-replies)
+* [Comment Post Vote](#comment-vote)
+
+### Common Error Responses for Comments endpoints:
+
+* **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Authentication credentials were not provided."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+* **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Invalid token."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+* **Code:** 404 Not Found <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 404,
+            "messages": [
+                "detail: No comment exists with the id: ???."
+            ]
+        }
+    }
+    ```
+
+### Comment Information
+
+Endpoint to get the Comment data by the id provided in the URL.
+
+* **URL**
+
+    `/comments/<str:id>`
+
+* **Method:**
+
+    `GET`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/comments/faab0e4 \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "id": "faab0e4",
+            "body": "This meme implies that we aren’t already allies with r/lotrmemes. If it weren’t for them we would’ve lost the great meme wars.",
+            "created_utc": "2019-12-09T15:45:18",
+            "author": {
+                "id": "fdqaa",
+                "name": "suckit5253",
+                "created_utc": "2014-02-21T13:19:49",
+                "icon_img": "https://www.redditstatic.com/avatars/avatar_default_15_DDBD37.png",
+                "comment_karma": 88502,
+                "link_karma": 60633
+            },
+            "score": 1466,
+            "permalink": "/r/PrequelMemes/comments/e8a0c7/reddit_assemble/faab0e4/",
+            "link_id": "t3_e8a0c7",
+            "parent_id": "t3_e8a0c7",
+            "submission": {
+                "id": "e8a0c7",
+                "name": "t3_e8a0c7",
+                "title": "Reddit assemble",
+                "created_utc": "2019-12-09T13:33:35",
+                "author_name": "starwarsgeek1985",
+                "num_comments": 455,
+                "score": 39006,
+                "url": "https://i.redd.it/kz7ku53k1m341.jpg"
+            },
+            "subreddit": {
+                "id": "3i60n",
+                "name": "t5_3i60n",
+                "display_name": "PrequelMemes",
+                "public_description": "Memes of the Star Wars Prequels",
+                "created_utc": "2016-12-27T03:05:47",
+                "subscribers": 1120894
+            },
+            "has_replies": true,
+            "is_submitter": false,
+            "distinguished": null,
+            "edited": false,
+            "stickied": false
+        }
+    }
+    ```
+
+### Comment Replies
+
+Endpoint to get a Comment's replies. It returns a max of 20 replies per request. Uses offset to get the rest in different requests. The flat parameter is used to retrieve replies with lower level than top level. The order of the list with flat=True is [Reply_Level1, Reply_Level2, ..., Reply_LevelN]
+
+* **URL**
+
+    `/comments/<str:id>/replies`
+
+* **Method:**
+
+    `GET`
+
+* **URL Params**
+
+    **Optional:**
+
+    `limit=[0<int<21] (default=10)`
+    `offset=[0<=int] (default=0)`
+    `flat=[True|False] (default=False)`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/comments/faab0e4/replies?limit=2&flat=True \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "replies": [
+                {
+                    "id": "faadzi5",
+                    "body": "*flashbacks to Meme War II*\n\nWhat a glorious and bloody battle that was, brother.",
+                    "created_utc": "2019-12-09T16:05:39",
+                    "author_name": "normiesreeeeeeee",
+                    "score": 671,
+                    "subreddit_id": "t5_3i60n",
+                    "link_id": "t3_e8a0c7",
+                    "parent_id": "t1_faab0e4",
+                    "has_replies": true
+                },
+                {
+                    "id": "faaxjgn",
+                    "body": "This is a repost that first came up during the whole “r/prequelmemes is dying” thing earlier this year that ended up pushing the sub over a million subscribers. r/lotrmemes was a big reason for the jump in subscribers",
+                    "created_utc": "2019-12-09T18:08:23",
+                    "author_name": "landoofficial",
+                    "score": 43,
+                    "subreddit_id": "t5_3i60n",
+                    "link_id": "t3_e8a0c7",
+                    "parent_id": "t1_faab0e4",
+                    "has_replies": true
+                }
+            ],
+            "limit": 2,
+            "offset": 0,
+            "flat": "True"
+        }
+    }
+    ```
+
+### Comment Vote
+
+Endpoint to post a vote for a comment by the id provided in the url. Passing vote_value = [-1|0|1] a downvote, clear_vote, upvote action is executed for the submission.
+
+* **URL**
+
+    `/comment/<str:id>/vote`
+
+* **Method:**
+
+    `POST`
+
+* **Data Params**
+
+    **Required:**
+
+    `vote_value=[-1<=int<=1]`
+
+    e.g:
+
+    ```json
+    {
+        "vote_value": 1
+    }
+    ```
+
+* **Sample Call:**
+
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/comment/faab0e4/vote \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+    vote_value=1
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "detail": "Vote action 'Upvote' successful for submission with id: e8a0c7!"
         }
     }
     ```
