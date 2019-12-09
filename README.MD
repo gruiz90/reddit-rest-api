@@ -722,6 +722,7 @@ All the endpoints provided to interact with Subreddits for an authorized client.
 * [Subscribe to a Subreddit](#subreddit-subscribe)
 * [Unsubscribe to a Subreddit](#subreddit-unsubscribe)
 * [Subreddit Rules](#subreddit-rules)
+* [Subreddit Submissions](#subreddit-submissions)
 
 ### Common Error Responses for Subreddits endpoints:
 
