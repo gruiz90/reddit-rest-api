@@ -180,7 +180,7 @@ class SubmissionCommentsView(APIView):
 				comments.append(CommentsUtils.get_comment_data_simple(comment))
 				# For some reason the comment_limit attr in the submission instance does not work
 				# as suggested in docs, so breaking here when it reaches limit comments
-				if len(comments) > limit:
+				if len(comments) > limit-1:
 					break
 
 		logger.info(f'Total comments retrieved: {len(comments)}')
