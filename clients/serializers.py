@@ -37,6 +37,7 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
         model = SalesforceOrg
         fields = ['org_id', 'org_name', 'org_url',
                   'package_version', 'clients',
+                  'instance_url', 'access_token',
                   'created_at', 'updated_at']
         read_only = ['org_id', 'created_at', 'updated_at']
         depth = 1
@@ -49,5 +50,9 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
         instance.org_url = validated_data.get('org_url', instance.org_url)
         instance.package_version = validated_data.get(
             'package_version', instance.package_version)
+        instance.instance_url = validated_data.get(
+            'instance_url', instance.instance_url)
+        instance.access_token = validated_data.get(
+            'access_token', instance.access_token)
         instance.save()
         return instance

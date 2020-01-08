@@ -15,6 +15,9 @@ class SalesforceOrg(models.Model):
     org_name = models.CharField(max_length=256)
     org_url = models.URLField(max_length=512)
     package_version = models.CharField(max_length=8, blank=True, default='1.0')
+    instance_url = models.URLField(max_length=512, blank=True)
+    access_token = EncryptedCharField(
+        max_length=256, null=True, help_text='Salesforce connected app oauth access token.')
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
 

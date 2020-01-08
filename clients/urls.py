@@ -10,4 +10,6 @@ urlpatterns = [
     path('oauth_confirm', views.ClientOauthConfirmationView.as_view()),
 	path('me', views.ClientView.as_view()),
     path('disconnect', views.ClientDisconnectView.as_view()),
+	path('salesforce_oauth/<str:org_id>', views.SalesforceOauthView.as_view()),
+	path('salesforce_oauth_callback', views.SalesforceOauthCallbackView.as_view()),
 ]

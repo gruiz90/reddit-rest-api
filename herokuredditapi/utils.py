@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 from rest_framework.views import exception_handler
+from django.core.cache import cache
+from datetime import datetime
+
+import random
 import logging
 import colorlog
 import os
 import praw
-from datetime import datetime
-
+import urllib
 
 def custom_json_exception_handler(exc, context):
 	# Call REST framework's default exception handler first,
@@ -85,3 +88,18 @@ class Utils(object):
 		client_org.new_client_request()
 		return Utils.get_reddit_instance(token=client_org.reddit_token)
 
+
+	@staticmethod
+	def save_valid_state_in_cache(key, org_id=None):
+		state = str(random.randint(0, 65536))
+		while cache.has_key(f'{key}_{state}'):
+			state = str(random.randint(0, 65536))
+		state_data = {'status': 'pending'}
+		if org_id:
+			state_data['org_id'] = org_id
+		cache.set(f'{key}_{state}', state_data)
+		return state
+
+	@staticmethod
+	def make_url_with_params(path_url, **kwargs):
+		return f'{path_url}?{urllib.parse.urlencode(kwargs)}'
