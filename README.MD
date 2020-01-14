@@ -273,8 +273,6 @@ Handles the autorization confirmation of a Reddit account for a Salesforce organ
 
     `org_id=[string]`
     `org_name=[string]`
-    `org_url=[string]`
-    `org_name=[string]`
 
     **Optional:**
     `package_version=[string]`
@@ -285,7 +283,6 @@ Handles the autorization confirmation of a Reddit account for a Salesforce organ
     {
         "org_id": "testorgid",
         "org_name": "test",
-        "org_url": "http://test.com",
         "package_version":"1.0"
     }
     ```
@@ -294,7 +291,7 @@ Handles the autorization confirmation of a Reddit account for a Salesforce organ
 
     ```shell
     http POST https://reddit-rest-api.herokuapp.com/clients/oauth_confirm?state=11562 \
-    org_id=testorgid org_name=test org_url=http://test.com package_version=1.0
+    org_id=testorgid org_name=test package_version=1.0
     ```
 
 * **Success Response:**
@@ -503,7 +500,7 @@ Expects a valid bearer token in the Authorization header.
 * **Sample Call:**
 
     ```shell
-    http DELETE https://reddit-rest-api.herokuapp.com/clients/me \
+    http DELETE https://reddit-rest-api.herokuapp.com/clients/disconnect \
     'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
     ```
 

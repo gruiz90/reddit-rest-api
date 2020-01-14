@@ -97,7 +97,7 @@ class Utils(object):
 		state_data = {'status': 'pending'}
 		if org_id:
 			state_data['org_id'] = org_id
-		cache.set(f'{key}_{state}', state_data)
+		cache.set(f'{key}_{state}', state_data, 900)
 		return state
 
 	@staticmethod

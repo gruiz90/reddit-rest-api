@@ -13,11 +13,10 @@ import binascii
 class SalesforceOrg(models.Model):
     org_id = models.CharField(primary_key=True, max_length=64)
     org_name = models.CharField(max_length=256)
-    org_url = models.URLField(max_length=512)
-    package_version = models.CharField(max_length=8, blank=True, default='1.0')
     instance_url = models.URLField(max_length=512, blank=True)
     access_token = EncryptedCharField(
         max_length=256, null=True, help_text='Salesforce connected app oauth access token.')
+    package_version = models.CharField(max_length=8, blank=True, default='1.0')
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False)
 
@@ -30,7 +29,7 @@ class SalesforceOrg(models.Model):
 
     def __str__(self):
         result = [f'Org Id: {self.org_id}', f'Org Name: {self.org_name}',
-                  f'Org URL: {self.org_url}', f'Package version installed: {self.package_version}']
+                  f'Org Instance URL: {self.instance_url}', f'Package version installed: {self.package_version}']
         return ', '.join((str(x) for x in result))
 
 

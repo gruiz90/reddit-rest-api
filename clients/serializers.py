@@ -35,9 +35,9 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SalesforceOrg
-        fields = ['org_id', 'org_name', 'org_url',
-                  'package_version', 'clients',
+        fields = ['org_id', 'org_name',
                   'instance_url', 'access_token',
+                  'package_version', 'clients',
                   'created_at', 'updated_at']
         read_only = ['org_id', 'created_at', 'updated_at']
         depth = 1
@@ -47,12 +47,17 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.org_name = validated_data.get('org_name', instance.org_name)
-        instance.org_url = validated_data.get('org_url', instance.org_url)
-        instance.package_version = validated_data.get(
-            'package_version', instance.package_version)
         instance.instance_url = validated_data.get(
             'instance_url', instance.instance_url)
         instance.access_token = validated_data.get(
             'access_token', instance.access_token)
+        instance.package_version = validated_data.get(
+            'package_version', instance.package_version)
         instance.save()
         return instance
+
+
+class SalesforceScratchDataSerializer(serializers.Serializer):
+    org_id = serializers.CharField(required=True, max_length=64)
+    instance_url = serializers.URLField(required=True, max_length=512)
+    access_token = serializers.CharField(required=True, max_length=256)
