@@ -35,8 +35,8 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SalesforceOrg
-        fields = ['org_id', 'org_name',
-                  'instance_url', 'access_token',
+        fields = ['org_id', 'org_name', 'instance_url',
+                  'access_token', 'refresh_token',
                   'package_version', 'clients',
                   'created_at', 'updated_at']
         read_only = ['org_id', 'created_at', 'updated_at']
@@ -51,13 +51,14 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
             'instance_url', instance.instance_url)
         instance.access_token = validated_data.get(
             'access_token', instance.access_token)
+        instance.refresh_token = validated_data.get(
+            'refresh_token', instance.refresh_token)
         instance.package_version = validated_data.get(
             'package_version', instance.package_version)
         instance.save()
         return instance
 
 
-class SalesforceScratchDataSerializer(serializers.Serializer):
-    org_id = serializers.CharField(required=True, max_length=64)
+class SalesforceTokenDataSerializer(serializers.Serializer):
     instance_url = serializers.URLField(required=True, max_length=512)
     access_token = serializers.CharField(required=True, max_length=256)

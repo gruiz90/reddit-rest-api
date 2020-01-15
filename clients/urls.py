@@ -8,9 +8,10 @@ urlpatterns = [
     path('oauth', views.ClientOauthView.as_view()),
     path('oauth_callback', views.ClientOauthCallbackView.as_view()),
     path('oauth_confirm', views.ClientOauthConfirmationView.as_view()),
+	path('disconnect', views.ClientDisconnectView.as_view()),
 	path('me', views.ClientView.as_view()),
-    path('disconnect', views.ClientDisconnectView.as_view()),
-	path('salesforce_oauth/<str:org_id>', views.SalesforceOauthView.as_view()),
+	path('salesforce_oauth', views.SalesforceOauthView.as_view()),
 	path('salesforce_oauth_callback', views.SalesforceOauthCallbackView.as_view()),
-	path('scratch_oauth', views.SalesforceScratchOauthView.as_view())
+	path('salesforce_token', views.SalesforceTokenView.as_view()),
+	path('salesforce_token_revoke', views.SalesforceRevokeAccessView.as_view()),
 ]

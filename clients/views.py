@@ -18,7 +18,7 @@ from django.core.cache import cache
 from django.utils.timezone import now
 
 from .models import SalesforceOrg, ClientOrg, Token
-from .serializers import SalesforceOrgSerializer, ClientOrgSerializer, SalesforceScratchDataSerializer
+from .serializers import SalesforceOrgSerializer, ClientOrgSerializer, SalesforceTokenDataSerializer
 from redditors.models import Redditor
 from redditors.serializers import RedditorSerializer
 from herokuredditapi.permissions import MyOauthConfirmPermission
@@ -268,31 +268,38 @@ class ClientsView(APIView):
     pass
 
 
-class SalesforceOauthView(RedirectView):
+class SalesforceOauthView(APIView):
     """
     API endpoint that creates a Salesforce oauth url and redirects there
     """
+    # This endpoint is only usable for orgs that already
+    # have a bearer token from the reddit oauth flow
+    authentication_classes = [MyTokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     endpoint_url = 'https://login.salesforce.com/services/oauth2/authorize'
     redirect_uri = f'{os.environ.get("DOMAIN_URL")}/clients/salesforce_oauth_callback'
     client_id = os.environ.get('CONNECTED_APP_KEY')
     is_permanent = True
 
-    def get_redirect_url(self, org_id):
+    def get(self, request, Format=None):
         logger.info('-' * 100)
         logger.info('New Salesforce OAuth request...')
-        logger.debug(f'org_id in request: {org_id}')
 
-        # Save valid state integer in cache
-        state = Utils.save_valid_state_in_cache('salesforce_oauth', org_id)
+        # Get the org_id from the request, I need to save it in cache because the callback
+        # cannnot have a Bearer token Authorization header
+        client_org = request.user
+        # Save valid state integer in cache with the org_id linked to the client_org
+        state = Utils.save_valid_state_in_cache(
+            'salesforce_oauth', client_org.salesforce_org_id)
         logger.debug(
             f'Saving salesforce_oauth_{state} in cache with status pending')
 
         oauth_url = Utils.make_url_with_params(self.endpoint_url, response_type='code',
                                                client_id=self.client_id, prompt='consent',
-                                               redirect_uri=self.redirect_uri, state=state)
-        logger.debug(f'oauth_url: {oauth_url}')
-        return oauth_url
+                                               redirect_uri=self.redirect_uri,
+                                               scope='full refresh_token', state=state)
+        return Response({'oauth_url': oauth_url, 'state': state}, status=status.HTTP_200_OK)
 
 
 class SalesforceOauthCallbackView(APIView):
@@ -362,6 +369,7 @@ class SalesforceOauthCallbackView(APIView):
                             # Save the instance_url and access token here...
                             instance_url = response_json['instance_url']
                             access_token = response_json['access_token']
+                            refresh_token = response_json['refresh_token']
 
                             org = SalesforceOrg.objects.get_or_none(
                                 org_id=org_id)
@@ -369,7 +377,8 @@ class SalesforceOauthCallbackView(APIView):
                             if org:
                                 serializer = SalesforceOrgSerializer(instance=org,
                                                                      data={'instance_url': instance_url,
-                                                                           'access_token': access_token},
+                                                                           'access_token': access_token,
+                                                                           'refresh_token': refresh_token},
                                                                      partial=True)
                                 serializer.is_valid(raise_exception=True)
                                 serializer.save()
@@ -426,24 +435,30 @@ class SalesforceOauthCallbackView(APIView):
         return response_json['signature'] == generated_signature
 
 
-class SalesforceScratchOauthView(APIView):
+class SalesforceTokenView(APIView):
     """
-    API endpoint that recieves an access token and instance url of a Salesforce org.
+    API endpoint that recieves an access token and instance url of a Salesforce org to connect
+    this app with the org from the url. The access token is the one generated with sfdx.
     """
+
+    # This endpoint is only usable for orgs that already
+    # have a bearer token from the reddit oauth flow
+    authentication_classes = [MyTokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('New Scratch Org OAuth request...')
+        logger.info('New Salesforce Token request...')
 
         # Check if the data passed is acceptable with the custom serializer
-        serializer = SalesforceScratchDataSerializer(data=request.data)
+        serializer = SalesforceTokenDataSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
         # First validated request.data and save the SalesforceOrg object
-        org_id = validated_data['org_id']
+        org_id = request.user.salesforce_org_id
         org = SalesforceOrg.objects.get_or_none(
-            org_id=validated_data['org_id'])
+            org_id=org_id)
         if not org:
             return Response(data={'status': 'error',
                                   'detail': f'Salesforce org with id: {org_id} not found in database.'},
@@ -455,5 +470,61 @@ class SalesforceScratchOauthView(APIView):
         org = serializer.save()
         logger.debug(f'Org data -> {org}')
 
-        return Response(data={'detail': 'Salesforce org data updated succesfully.'},
+        return Response(data={'detail': 'Salesforce org access token and instance url updated succesfully.'},
                         status=status.HTTP_200_OK)
+
+
+class SalesforceRevokeAccessView(APIView):
+    """
+    API endpoint that revokes the oauth access token for a Salesforce org according to the 
+    Authorization bearer token.
+    """
+
+    # This endpoint is only usable for orgs that already
+    # have a bearer token from the reddit oauth flow
+    authentication_classes = [MyTokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    endpoint_url = 'https://login.salesforce.com/services/oauth2/revoke'
+
+    def delete(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('New Salesforce revoke token request...')
+
+        org_id = request.user.salesforce_org_id
+        org = SalesforceOrg.objects.get_or_none(org_id=org_id)
+        if not org:
+            return Response(data={'status': 'error',
+                                  'detail': f'Salesforce org with id: {org_id} not found in database.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        refresh_token = org.refresh_token
+        # Just delete the tokens from the org record
+        org.access_token = None
+        org.refresh_token = None
+        org.save()
+
+        response_data = {
+            'detail': f'Oauth access token revoked for Salesforce org with id: {org_id}.'}
+        if refresh_token:
+            # Now call Salesforce oauth revoke endpoint
+            req = self.make_revoke_request(refresh_token)
+            response_text = req.text
+            if req.status_code == 200:
+                response_data['revoke_result'] = 'Oauth token revoked successfully.'
+            else:
+                logger.debug(
+                    f'Error trying to revoke oauth token: {response_text}')
+                response_data['revoke_result'] = f'{req.status_code}:{response_text}'
+        else:
+            response_data['revoke_result'] = 'No refresh token found to revoke.'
+
+        return Response(data=response_data, status=status.HTTP_200_OK)
+
+    def make_revoke_request(self, refresh_token):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        payload = {'token': refresh_token}
+        return requests.post(self.endpoint_url,
+                             headers=headers, data=payload)
