@@ -13,7 +13,8 @@ Hosted in: https://reddit-rest-api.herokuapp.com/
 * [Submissions](/submissions)
 * [Comments](/comments)
 
-REST API implemented using __DRF__ ([Django Rest Framework](https://www.django-rest-framework.org/)).
-Using the python package __PRAW__ ([Python Reddit API Wrapper](https://github.com/praw-dev/praw)) to connect with Reddit's API.
+REST API implemented using __DRF__ ([Django Rest Framework](https://www.django-rest-framework.org/)) and using the python package __PRAW__ ([Python Reddit API Wrapper](https://github.com/praw-dev/praw)) to connect with the Reddit's API.
 
-![PRAW](praw.png)
+<p align="center">
+  <img src="praw.png"/>
+</p>
