@@ -2,12 +2,16 @@
 
 All the endpoints provided to authorize a Reddit account from a Salesforce organization.
 
-* [Oauth Init](#client-oauth)
-* [Oauth Callback](#client-oauth-callback)
-* [Oauth Status](#client-check-oauth-status)
-* [Oauth Confirm](#client-confirm-authorization)
+* [OAuth Init](#client-oauth)
+* [OAuth Callback](#client-oauth-callback)
+* [OAuth Status](#client-check-oauth-status)
+* [OAuth Confirm](#client-confirm-authorization)
 * [View client details](#view-client-details)
 * [Disconnect client](#disconnect-client)
+* [Salesforce OAuth Init](#salesforce-oauth)
+* [Salesforce OAuth Callback](#salesforce-oauth-callback)
+* [Salesforce save token](#salesforce-save-token)
+* [Salesforce revoke token](#salesforce-revoke-token)
 
 ## Client Oauth
 
@@ -497,6 +501,288 @@ Expects a valid bearer token in the Authorization header.
     {
         "data": {
             "detail": "Account disconnected succesfully."
+        }
+    }
+    ```
+
+* **Error Response:**
+
+  * **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Authentication credentials were not provided."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+  * **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Invalid token."
+            ]
+        }
+    }
+    ```
+
+## Salesforce Oauth
+
+Initiates a Salesforce org OAuth using the connected app credentials and returning the authorization URL.
+
+* **URL**
+
+    `/clients/salesforce_oauth`
+
+* **Method:**
+
+    `GET`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/clients/salesforce_oauth \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "oauth_url": "https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=3MVG9_XwsqeYoueKQ6jRFoG0mczO3WYS7B2N7bvuiZuhLJxHiBAyiFrF8zAA8yBTbDV9I4IwPGltSwnE3O087&prompt=consent&redirect_uri=https%3A%2F%2Freddit-rest-api.herokuapp.com%2Fclients%2Fsalesforce_oauth_callback&scope=full+refresh_token&state=41711",
+            "state": "41711"
+        }
+    }
+    ```
+
+## Salesforce Oauth Callback
+
+Handles the callback from the Salesforce Oauth flow. Only used when the user 'allows' or 'declines' the conditions in the Salesforce authorization page.
+
+* **URL**
+
+    `/clients/salesforce_oauth_callback`
+
+* **Method:**
+
+    `GET`
+
+* **URL Params**
+
+    **Required:**
+
+    `state=[integer]`
+    `code=[string]`
+
+    **Optional:**
+
+    `error=[integer]`
+    `error_description=[string]`
+
+* **Sample Call:**
+
+    ```shell
+    http GET https://reddit-rest-api.herokuapp.com/clients/salesforce_oauth_callback?state=11562&code=123456789
+    ```
+
+* **Success Response:**
+
+  * **Code:** 302 <br/>
+    **Content:** <br/>
+
+    Redirect to the Salesforce org instance that initiated the OAuth.
+
+* **Error Response:**
+
+  * **Call:** `http GET https://reddit-rest-api.herokuapp.com/clients/salesforce_oauth_callback` <br/>
+    **Code:** 400 Bad Request <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 400,
+            "messages": [
+                "detail: state param not found."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+  * **Call:** `http GET https://reddit-rest-api.herokuapp.com/clients/salesforce_oauth_callback?state=abc` <br/>
+    **Code:** 412 Precondition Failed <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 412,
+            "messages": [
+                "detail: Invalid or expired state."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+  * **Call:** `http GET https://reddit-rest-api.herokuapp.com/clients/salesforce_oauth_callback?error=access_denied&error_description=end-user+denied+authorization&state=52642` <br/>
+    **Code:** 417 Expectation Failed <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 417,
+            "messages": [
+                "detail: end-user+denied+authorization"
+            ]
+        }
+    }
+    ```
+
+## Salesforce save token
+
+Recieves an access token and instance url of a Salesforce org to connect this app with the org from the url. The access token is the one generated with sfdx.
+
+* **URL**
+
+    `/clients/salesforce_token`
+
+* **Method:**
+
+    `POST`
+
+* **Data Params**
+
+    **Required:**
+
+    `instance_url=[string]`
+    `access_token=[string]`
+
+    e.g:
+
+    ```json
+    {
+        "instance_url": "https://connect-page-7136-dev-ed.cs90.my.salesforce.com",
+        "access_token": "1234567890.ABCDEFGH",
+    }
+    ```
+
+* **Sample Call:**
+
+    ```shell
+    http POST https://reddit-rest-api.herokuapp.com/clients/salesforce_token \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+    instance_url=https://connect-page-7136-dev-ed.cs90.my.salesforce.com \
+    access_token=1234567890.ABCDEFGH
+    ```
+
+* **Success Response:**
+
+  * **Code:** 201 Created <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "detail": "Salesforce org access token and instance url updated succesfully."
+        }
+    }
+    ```
+
+* **Error Response:**
+
+  * **Code:** 404 Not Found <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "status": "error",
+            "detail": "Salesforce org with id: 123456789 not found in database."
+        }
+    }
+    ```
+
+    OR
+
+  * **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Authentication credentials were not provided."
+            ]
+        }
+    }
+    ```
+
+    OR
+
+  * **Code:** 401 Unauthorized <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "error": {
+            "code": 401,
+            "messages": [
+                "detail: Invalid token."
+            ]
+        }
+    }
+    ```
+
+## Salesforce revoke token
+
+Revokes the oauth access token for a Salesforce org according to the Authorization bearer token.
+
+* **URL**
+
+    `/clients/salesforce_token_revoke`
+
+* **Method:**
+
+    `DELETE`
+
+* **Sample Call:**
+
+    ```shell
+    http DELETE https://reddit-rest-api.herokuapp.com/clients/salesforce_token_revoke \
+    'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+    ```
+
+* **Success Response:**
+
+  * **Code:** 200 OK <br/>
+    **Content:** <br/>
+
+    ```json
+    {
+        "data": {
+            "detail": "Oauth access token revoked for Salesforce org with id: 123456789.",
+            "revoke_result": "Oauth token revoked successfully."
         }
     }
     ```

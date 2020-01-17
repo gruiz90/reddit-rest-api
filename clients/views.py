@@ -269,7 +269,7 @@ class ClientsView(APIView):
 
 class SalesforceOauthView(APIView):
     """
-    API endpoint that creates a Salesforce oauth url and redirects there
+    API endpoint that initiates a Salesforce org OAuth using the connected app credentials.
     """
     # This endpoint is only usable for orgs that already
     # have a bearer token from the reddit oauth flow
@@ -473,7 +473,7 @@ class SalesforceTokenView(APIView):
         logger.debug(f'Org data -> {org}')
 
         return Response(data={'detail': 'Salesforce org access token and instance url updated succesfully.'},
-                        status=status.HTTP_200_OK)
+                        status=status.HTTP_201_CREATED)
 
 
 class SalesforceRevokeAccessView(APIView):

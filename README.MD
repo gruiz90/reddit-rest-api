@@ -7,7 +7,7 @@ Hosted in: https://reddit-rest-api.herokuapp.com/
 
 ## Important paths
 
-* [Clients & Authorization](/clients)
+* [Authorization](/clients)
 * [Redditors](/redditors)
 * [Subreddits](/subreddits)
 * [Submissions](/submissions)
@@ -16,6 +16,6 @@ Hosted in: https://reddit-rest-api.herokuapp.com/
 REST API implemented using __DRF__ ([Django Rest Framework](https://www.django-rest-framework.org/)) and using the python package __PRAW__ ([Python Reddit API Wrapper](https://github.com/praw-dev/praw)) to connect with the Reddit's API.
 
 <p align="center">
-    <img src="drf.png"/>
+    <img src="drf.png" />
     <img src="praw.png" style="padding:8rem"/>
 </p>

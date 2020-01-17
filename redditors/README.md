@@ -2,8 +2,8 @@
 
 All the endpoints provided to interact with Redditors for an authorized client.
 
-* [My Redditor Information](#my-redditor-data)
-* [Redditor Info](#get-redditor-data)
+* [My Redditor Information](#my-redditor-info)
+* [Get Redditor Information](#get-redditor-info)
 
 ## Common Error Responses for Redditors endpoints:
 
@@ -53,7 +53,7 @@ All the endpoints provided to interact with Redditors for an authorized client.
     }
     ```
 
-## My Redditor Data
+## My Redditor Info
 
 Endpoint to get the authorized reddit account redditor data and subscriptions.
 
@@ -114,7 +114,7 @@ Endpoint to get the authorized reddit account redditor data and subscriptions.
     }
     ```
 
-## Get Redditor Data
+## Get Redditor Info
 
 Endpoint to get the Redditor data by the name provided in the URL.
 
