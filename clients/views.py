@@ -4,7 +4,6 @@ import requests
 import hmac
 import hashlib
 import base64
-from pprint import pprint
 
 from rest_framework.views import APIView
 from django.shortcuts import redirect
@@ -415,8 +414,11 @@ class SalesforceOauthCallbackView(APIView):
             'Authorization': f'Basic {basic_auth_encoded_str}',
             'Accept': 'application/json'
         }
-        payload = {'grant_type': self.grant_type,
-                   'redirect_uri': self.redirect_uri, 'code': code}
+        payload = {
+            'grant_type': self.grant_type,
+            'redirect_uri': self.redirect_uri,
+            'code': code
+        }
 
         return requests.post(self.endpoint_url,
                              headers=headers, params=payload)
@@ -525,6 +527,8 @@ class SalesforceRevokeAccessView(APIView):
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-        payload = {'token': refresh_token}
+        payload = {
+            'token': refresh_token
+        }
         return requests.post(self.endpoint_url,
                              headers=headers, data=payload)
