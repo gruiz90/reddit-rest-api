@@ -172,8 +172,8 @@ Endpoint to get a Submission's comments. It returns a max of 20 comments per req
                     "has_replies": true
                 }
             ],
-            "sort": "top",
-            "limit": 2,
+            "sort_type": "top",
+            "limit_request": 2,
             "offset": 3,
             "flat": false
         }

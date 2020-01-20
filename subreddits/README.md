@@ -557,7 +557,7 @@ Endpoint to get a Subreddit's Submissions. It returns a max of 5 submissions per
                     "url": "https://v.redd.it/ib5nkw7ifaz31"
                 }
             ],
-            "sort": "top",
+            "sort_type": "top",
             "time_filter": "month",
             "offset": 0
         }

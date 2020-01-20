@@ -182,7 +182,7 @@ Endpoint to get a Comment's replies. It returns a max of 20 replies per request.
                     "has_replies": true
                 }
             ],
-            "limit": 2,
+            "limit_request": 2,
             "offset": 0,
             "flat": "True"
         }
