@@ -310,6 +310,6 @@ class SubredditSubmissions(APIView):
 				submissions.append(SubmissionsUtils.get_submission_data_simple(sub))
 		logger.info(f'Total submissions: {len(submissions)}')
 
-		return Response({'submissions': submissions, 'sort': sort,
+		return Response({'submissions': submissions, 'sort_type': sort,
                    'time_filter': time_filter, 'offset': offset},
                   status=status.HTTP_200_OK)

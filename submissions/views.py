@@ -185,6 +185,6 @@ class SubmissionCommentsView(APIView):
 
 		logger.info(f'Total comments retrieved: {len(comments)}')
 
-		return Response({'comments': comments, 'sort': sort,
-						 'limit': limit, 'offset': offset, 'flat': flat},
+		return Response({'comments': comments, 'sort_type': sort,
+						 'limit_request': limit, 'offset': offset, 'flat': flat},
 						status=status.HTTP_200_OK)

@@ -179,5 +179,5 @@ class CommentRepliesView(APIView):
 
 		logger.info(f'Total comments retrieved: {len(replies)}')
 
-		return Response({'replies': replies, 'limit': limit, 'offset': offset, 'flat': flat},
+		return Response({'replies': replies, 'limit_request': limit, 'offset': offset, 'flat': flat},
                   status=status.HTTP_200_OK)
