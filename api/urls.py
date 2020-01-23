@@ -1,4 +1,4 @@
-"""herokuredditapi URL Configuration
+"""api URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
 	https://docs.djangoproject.com/en/2.2/topics/http/urls/
@@ -30,5 +30,4 @@ urlpatterns = [
 	path('submissions/', include('submissions.urls', namespace='submissions')),
 	path('comments/', include('comments.urls', namespace='comments')),
 	path('admin/', admin.site.urls),
-    # path('user_groups/', include('user_groups.urls')),
 ]

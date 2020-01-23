@@ -3,13 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
-from herokuredditapi.tokenauthentication import MyTokenAuthentication
+from api.token_authentication import MyTokenAuthentication
 from .models import Redditor
 from .serializers import RedditorSerializer
 from .utils import RedditorsUtils
 from subreddits.utils import SubredditsUtils
 
-from herokuredditapi.utils import Utils
+from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 

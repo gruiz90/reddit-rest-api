@@ -1,2 +1,2 @@
 release: python manage.py migrate --noinput
-web: gunicorn herokuredditapi.wsgi --log-file -
+web: gunicorn api.wsgi --log-file -

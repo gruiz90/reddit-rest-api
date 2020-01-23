@@ -2,7 +2,7 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework import exceptions
 from django.core.cache import cache
 
-from herokuredditapi.utils import Utils
+from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 

@@ -20,12 +20,12 @@ from .models import SalesforceOrg, ClientOrg, Token
 from .serializers import SalesforceOrgSerializer, ClientOrgSerializer, SalesforceTokenDataSerializer
 from redditors.models import Redditor
 from redditors.serializers import RedditorSerializer
-from herokuredditapi.permissions import MyOauthConfirmPermission
-from herokuredditapi.tokenauthentication import MyTokenAuthentication
+from api.permissions import MyOauthConfirmPermission
+from api.token_authentication import MyTokenAuthentication
 from subreddits.utils import SubredditsUtils
 from redditors.utils import RedditorsUtils
 
-from herokuredditapi.utils import Utils
+from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 

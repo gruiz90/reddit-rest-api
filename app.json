@@ -3,20 +3,24 @@
 	"description": "A Django REST API for Reddit",
 	"image": "heroku/python",
 	"repository": "https://git.heroku.com/reddit-rest-api.git",
-	"keywords": ["python", "django"],
+	"keywords": ["python", "django", "praw", "djangorestframework"],
 	"addons": ["heroku-postgresql", "heroku-redis"],
 	"env": {
 		"SECRET_KEY": {
 			"description": "The secret key for the Django application.",
 			"generator": "secret"
+		},
+		"DEBUG": {
+			"description": "The mode Django runs on, also sets log level.",
+			"value": true
 		}
 	},
 	"environments": {
 		"test": {
-			"addons": ["heroku-postgresql:in-dyno", "heroku-redis:in-dyno"],
+			"addons": ["heroku-redis:in-dyno"],
 			"scripts": {
 				"test-setup": "python manage.py collectstatic --noinput",
-				"test": "python -Wa manage.py test --noinput"
+				"test": "python -Wa -Wignore::DeprecationWarning manage.py test --noinput"
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 from django.db import models
-from herokuredditapi.modelmanager import MyModelManager
+from api.model_manager import MyModelManager
 from clients.models import ClientOrg
 
 
