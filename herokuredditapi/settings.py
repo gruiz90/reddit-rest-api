@@ -97,9 +97,18 @@ DATABASES = {
 # To use heroku postgress properly
 django_heroku.settings(locals())
 # override DATABASE_URL set by django_heroku because it forces SSL mode locally
-ssl_require = os.environ.get('ENV', 'development') != 'testing'
-locals()['DATABASES']['default'] = dj_database_url.config(
-    conn_max_age=django_heroku.MAX_CONN_AGE, ssl_require=ssl_require)
+# ssl_require = os.environ.get('ENV', 'development') != 'testing'
+# locals()['DATABASES']['default'] = dj_database_url.config(
+#     conn_max_age=django_heroku.MAX_CONN_AGE, ssl_require=ssl_require)
+
+# TODO: This is a hack while waiting for
+# https://github.com/heroku/django-heroku/issues/17
+# to be resolved.
+if os.environ.get('CI'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'HerokuCI'
+    }
 
 CACHES = {
     "default": {
