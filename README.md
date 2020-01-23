@@ -14,9 +14,13 @@ A Heroku web app that provides a complete REST API with everything that the Sale
 * [Submissions](/submissions)
 * [Comments](/comments)
 
-REST API implemented using __DRF__ ([Django Rest Framework](https://www.django-rest-framework.org/)) and __PRAW__ ([Python Reddit API Wrapper](https://github.com/praw-dev/praw)).
+REST API implemented using __DRF__ ([Django Rest Framework](https://github.com/encode/django-rest-framework)) and __PRAW__ ([Python Reddit API Wrapper](https://github.com/praw-dev/praw)).
 
 <p align="center">
-    <img src="drf.png" />
-    <img src="praw.png"/>
+    <a href="https://github.com/encode/django-rest-framework" target="_blank">
+        <img src="img_drf.png" />
+    </a>
+    <a href="https://github.com/praw-dev/praw" target="_blank">
+        <img src="img_praw.png"/>
+    </a>
 </p>
