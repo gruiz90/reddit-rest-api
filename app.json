@@ -16,7 +16,7 @@
 			"addons": ["heroku-postgresql:in-dyno", "heroku-redis:in-dyno"],
 			"scripts": {
 				"test-setup": "python manage.py collectstatic --noinput",
-				"test": "python -Wa manage.py test --noinput"
+				"test": "python manage.py test --noinput"
 			}
 		}
 	}
