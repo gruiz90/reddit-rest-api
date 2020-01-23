@@ -61,3 +61,21 @@ class RedditorsUtils(object):
 			'is_mod': redditor.is_mod,
 			'is_gold': redditor.is_gold,
 		}
+
+	@staticmethod
+	def get_dummy_redditor_data():
+		return {
+			'id': '4rfkxa54',
+			'name': 'sfdctest',
+			'created_utc': '2019-10-31T19:22:45Z',
+			# 'created_utc': datetime.strptime('2019-10-31 19:22:45', '%Y-%m-%d %H:%M:%S'),
+			'has_verified_email': True,
+			'icon_img': 'https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png',
+			'comment_karma': 0,
+			'link_karma': 1,
+			'num_friends': 0,
+			'is_employee': False,
+			'is_friend': False,
+			'is_mod': False,
+			'is_gold': False,
+		}

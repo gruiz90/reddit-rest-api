@@ -30,19 +30,24 @@ class RedditorAccountView(APIView):
 		# Gets the reddit instance from the user in request (ClientOrg)
 		reddit = Utils.new_client_request(request.user)
 
-		# Get the current authenticated reddit user data
-		reddit_user = reddit.user
 		subreddits = []
-		for sub in reddit_user.subreddits():
-			subreddits.append(SubredditsUtils.get_subreddit_data_simple(sub))
+		if reddit.read_only:
+			redditor_data = RedditorsUtils.get_dummy_redditor_data()
+			redditor_id = redditor_data['id']
+		else:
+			# Get the current authenticated reddit user data
+			api_redditor = reddit.user.me()
+			redditor_id = api_redditor.id
+			redditor_data = RedditorsUtils.get_redditor_data(api_redditor)
+			for sub in reddit.user.subreddits():
+				subreddits.append(SubredditsUtils.get_subreddit_data_simple(sub))
 
-		api_redditor = reddit_user.me()
 		# Create or update redditor object for this client
-		redditor = Redditor.objects.get_or_none(id=api_redditor.id)
+		redditor = Redditor.objects.get_or_none(id=redditor_id)
 		serializer = RedditorSerializer(
-			instance=redditor, data=RedditorsUtils.get_redditor_data(api_redditor))
+			instance=redditor, data=redditor_data)
 		serializer.is_valid(raise_exception=True)
-		redditor = serializer.save()
+		serializer.save()
 		redditor_data = serializer.data
 
 		redditor_data.update(subscriptions=subreddits)
