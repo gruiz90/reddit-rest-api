@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import django_heroku
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -95,7 +96,10 @@ DATABASES = {
 }
 # To use heroku postgress properly
 django_heroku.settings(locals())
-
+# override DATABASE_URL set by django_heroku because it forces SSL mode locally
+ssl_require = os.environ.get('ENV', 'development') != 'testing'
+locals()['DATABASES']['default'] = dj_database_url.config(
+    conn_max_age=django_heroku.MAX_CONN_AGE, ssl_require=ssl_require)
 
 CACHES = {
     "default": {
