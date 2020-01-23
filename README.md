@@ -1,9 +1,10 @@
 # Heroku Reddit API
 
+[![Heroku](https://heroku-badge.herokuapp.com/?app=reddit-rest-api&root=clients/me)](https://reddit-rest-api.herokuapp.com)
+[![Heroku CI Status](https://ci-badge.herokuapp.com/last.svg)](https://dashboard.heroku.com/pipelines/69207ad6-ac91-45c4-b653-4c464ba19bdb/tests)
+
 A Heroku web app that provides a complete REST API with everything that the Salesforce org client needs to interact with Reddit.
 (Authorization, subscriptions to subreddits, get submissions and comments from subreddits, create submissions and comments, reply to comments, upvote/downvote, direct messages to reddit users, ...)
-
-Hosted in: https://reddit-rest-api.herokuapp.com/
 
 ## Important paths
 
