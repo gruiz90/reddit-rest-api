@@ -18,17 +18,19 @@ class SubredditsUtils(object):
 
 	@staticmethod
 	def sub_exists(name, reddit):
-		exists = True
 		try:
-			reddit.subreddits.search_by_name(name, exact=True)
+			subreddits = reddit.subreddits.search_by_name(name, exact=True)
 		except NotFound:
-			exists = False
-		return exists
+			return False, None
+		return True, subreddits
 
 	@staticmethod
 	def get_sub_if_exists(name, reddit):
-		if SubredditsUtils.sub_exists(name, reddit):
-			return reddit.subreddit(name)
+		exists, subreddits = SubredditsUtils.sub_exists(name, reddit)
+		if exists:
+			for sub in subreddits:
+				if name.lower() == sub.display_name.lower():
+					return reddit.subreddit(name)
 		return None
 
 	@staticmethod

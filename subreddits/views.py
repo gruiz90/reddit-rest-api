@@ -44,7 +44,7 @@ class ConnectSubreddit(APIView):
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
 		logger.info(f'Connecting to Subreddit {subreddit.name}')
-		if not subreddit.user_is_subscriber:
+		if not reddit.read_only and not subreddit.user_is_subscriber:
 			logger.info('Client is not subscribed, so I need to subscribe him here..')
 			subreddit.subscribe()
 		logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
@@ -57,8 +57,6 @@ class ConnectSubreddit(APIView):
 		subreddit_obj = SubredditsUtils.create_or_update(subreddit_data)
 		# Add the client_org connection to the object
 		subreddit_obj.clients.add(client_org)
-		# Show info about the subreddit obj in the log
-		logger.info(repr(subreddit_obj))
 
 		return Response(subreddit_data, status=status.HTTP_201_CREATED)
 
@@ -80,7 +78,10 @@ class DisconnectSubreddit(APIView):
 		client_org = request.user
 		reddit = Utils.new_client_request(client_org)
 		# Get subreddit instance with the name provided
-		subreddit = reddit.subreddit(name)
+		subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+		if subreddit is None:
+			raise exceptions.NotFound(
+				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
 		subreddit_obj = Subreddit.objects.get_or_none(id=subreddit.id)
 		if subreddit_obj is None:
@@ -91,7 +92,7 @@ class DisconnectSubreddit(APIView):
 		client_org.subreddit_set.remove(subreddit_obj)
 
 		return Response(data={'detail': 'Client disconnected subreddit succesfully.'},
-						status=status.HTTP_200_OK)
+                  status=status.HTTP_200_OK)
 
 
 class SubredditView(APIView):
@@ -139,10 +140,12 @@ class SubredditSubscriptions(APIView):
 		client_org = request.user
 		reddit = Utils.new_client_request(client_org)
 
-		reddit_user = reddit.user
-		subreddits = []
-		for sub in reddit_user.subreddits():
-			subreddits.append(SubredditsUtils.get_subreddit_data_simple(sub))
+		if reddit.read_only:
+			subreddits = []
+		else:
+			reddit_user = reddit.user
+			subreddits = [SubredditsUtils.get_subreddit_data_simple(sub) 
+                            for sub in reddit_user.subreddits()]
 
 		return Response({'subscriptions': subreddits}, status=status.HTTP_200_OK)
 
@@ -192,9 +195,8 @@ class SubredditSubscribe(APIView):
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
-		if not subreddit.user_is_subscriber:
+		if not reddit.read_only and not subreddit.user_is_subscriber:
 			subreddit.subscribe()
-
 		logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
 
 		return Response({'detail': f'Client succesfully subscribed to {name}.'}, status=status.HTTP_200_OK)
@@ -221,7 +223,7 @@ class SubredditUnsubscribe(APIView):
 			raise exceptions.NotFound(
 				detail={'detail': f'No subreddit exists with the name: {name}.'})
 
-		if subreddit.user_is_subscriber:
+		if not reddit.read_only and subreddit.user_is_subscriber:
 			subreddit.unsubscribe()
 		logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
 
@@ -247,11 +249,11 @@ class SubredditSubmissions(APIView):
 	def __validate_query_params(self, sort, time_filter, offset):
 		if sort not in self._sortings:
 			raise exceptions.ParseError(
-                detail={'detail': f'Sort type {sort} invalid.'})
+                            detail={'detail': f'Sort type {sort} invalid.'})
 		elif sort == 'controversial' or sort == 'top':
 			if time_filter not in self._time_filters:
 				raise exceptions.ParseError(
-                	detail={'detail': f'Time filter {time_filter} invalid.'})
+                                    detail={'detail': f'Time filter {time_filter} invalid.'})
 		try:
 			offset = int(offset)
 			if offset < 0:
@@ -259,10 +261,9 @@ class SubredditSubmissions(APIView):
 					detail={'detail': f'Offset {offset} outside allowed range (offset>=0).'})
 		except ValueError:
 			raise exceptions.ParseError(
-					detail={'detail': f'offset parameter must be an integer.'})
+                            detail={'detail': f'offset parameter must be an integer.'})
 
 		return offset
-
 
 	def _get_submissions(self, subreddit, sort, time_filter, limit):
 		if sort == 'hot':
@@ -277,7 +278,6 @@ class SubredditSubmissions(APIView):
 			return subreddit.controversial(time_filter=time_filter, limit=limit)
 		else:
 			return subreddit.top(time_filter=time_filter, limit=limit)
-
 
 	def get(self, request, name, Format=None):
 		logger.info('-' * 100)
@@ -302,12 +302,13 @@ class SubredditSubmissions(APIView):
 		logger.info(f'offset: {offset}')
 
 		# Get submissions generator according to query_params and with the limit + offset?
-		submissions_generator = self._get_submissions(subreddit, sort, time_filter, offset + 5)
+		submissions_generator = self._get_submissions(
+			subreddit, sort, time_filter, offset + 5)
 
-		submissions = []
-		for index, sub in enumerate(submissions_generator, start=1):
-			if index > offset:
-				submissions.append(SubmissionsUtils.get_submission_data_simple(sub))
+		submissions = [
+			SubmissionsUtils.get_submission_data_simple(sub) 
+			for index, sub in enumerate(submissions_generator, start=1) if index > offset
+		]
 		logger.info(f'Total submissions: {len(submissions)}')
 
 		return Response({'submissions': submissions, 'sort_type': sort,
