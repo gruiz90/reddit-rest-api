@@ -80,15 +80,18 @@ class CommentVoteView(APIView):
 		# Get vote value from data json and check if valid
 		vote_value = self.__validate_vote_value(request.data.get('vote_value'))
 
-		if vote_value == -1:
-			vote_action = 'Downvote'
-			comment.downvote()
-		elif vote_value == 0:
-			vote_action = 'Clear Vote'
-			comment.clear_vote()
+		if not reddit.read_only:
+			if vote_value == -1:
+				vote_action = 'Downvote'
+				comment.downvote()
+			elif vote_value == 0:
+				vote_action = 'Clear Vote'
+				comment.clear_vote()
+			else:
+				vote_action = 'Upvote'
+				comment.upvote()
 		else:
-			vote_action = 'Upvote'
-			comment.upvote()
+			vote_action = 'dummy'
 
 		return Response({'detail': f'Vote action \'{vote_action}\' successful for comment with id: {id}!'},
 						status=status.HTTP_200_OK)
@@ -110,7 +113,7 @@ class CommentRepliesView(APIView):
 			flat = bool(flat)
 		except ValueError:
 			raise exceptions.ParseError(
-					detail={'detail': f'flat parameter must be an boolean like \'True\' or \'False\'.'})
+					detail={'detail': f'flat parameter must be a boolean like \'True\' or \'False\'.'})
 
 		try:
 			limit = int(limit)

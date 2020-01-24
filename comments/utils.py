@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from prawcore import NotFound
+from praw.exceptions import ClientException
 from redditors.utils import RedditorsUtils
 from subreddits.utils import SubredditsUtils
 from submissions.utils import SubmissionsUtils
@@ -22,7 +23,7 @@ class CommentsUtils(object):
 		try:
 			comment._fetch()
 			return comment
-		except NotFound:
+		except ClientException:
 			return None
 
 	@staticmethod

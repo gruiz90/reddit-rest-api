@@ -20,7 +20,7 @@
 			"addons": ["heroku-redis:in-dyno"],
 			"scripts": {
 				"test-setup": "python manage.py collectstatic --noinput",
-				"test": "python -Wa -Wignore::DeprecationWarning manage.py test --noinput"
+				"test": "python -Wa -Wignore::DeprecationWarning -Wignore::ResourceWarning manage.py test --noinput"
 			}
 		}
 	}
