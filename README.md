@@ -17,10 +17,10 @@ A Heroku web app that provides a complete REST API with everything that the Sale
 REST API implemented using __DRF__ ([Django Rest Framework](https://github.com/encode/django-rest-framework)) and __PRAW__ ([Python Reddit API Wrapper](https://github.com/praw-dev/praw)).
 
 <p align="center">
-    <a href="https://github.com/encode/django-rest-framework" target="_blank">
+    <a href="https://www.django-rest-framework.org/" target="_blank">
         <img src="img_drf.png" />
     </a>
-    <a href="https://github.com/praw-dev/praw" target="_blank">
+    <a href="https://praw.readthedocs.io/en/latest/index.html" target="_blank">
         <img src="img_praw.png"/>
     </a>
 </p>

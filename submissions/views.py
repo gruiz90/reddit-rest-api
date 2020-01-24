@@ -78,15 +78,18 @@ class SubmissionVoteView(APIView):
 		# Get vote value from data json and check if valid
 		vote_value = self.__validate_vote_value(request.data.get('vote_value'))
 
-		if vote_value == -1:
-			vote_action = 'Downvote'
-			submission.downvote()
-		elif vote_value == 0:
-			vote_action = 'Clear Vote'
-			submission.clear_vote()
+		if reddit.read_only:
+			vote_action = 'dummy'
 		else:
-			vote_action = 'Upvote'
-			submission.upvote()
+			if vote_value == -1:
+				vote_action = 'Downvote'
+				submission.downvote()
+			elif vote_value == 0:
+				vote_action = 'Clear Vote'
+				submission.clear_vote()
+			else:
+				vote_action = 'Upvote'
+				submission.upvote()
 
 		return Response({'detail': f'Vote action \'{vote_action}\' successful for submission with id: {id}!'},
 						status=status.HTTP_200_OK)
@@ -105,10 +108,10 @@ class SubmissionCommentsView(APIView):
 	authentication_classes = [MyTokenAuthentication]
 	permission_classes = [IsAuthenticated]
 
-	__sortings = ['best', 'top', 'new', 'controversial', 'old', 'q&a']
+	_sortings = ['best', 'top', 'new', 'controversial', 'old', 'q&a']
 
 	def __validate_query_params(self, sort, flat, limit, offset):
-		if sort not in self.__sortings:
+		if sort not in self._sortings:
 			raise exceptions.ParseError(
 				detail={'detail': f'Sort type {sort} invalid.'})
 
@@ -137,7 +140,7 @@ class SubmissionCommentsView(APIView):
 
 		return limit, offset
 
-	def __get_comments(self, submission, sort, limit, flat):
+	def _get_comments(self, submission, sort, limit, flat):
 		submission.comment_sort = sort
 		submission.comment_limit = limit
 		submission.comments.replace_more(limit=None)
@@ -171,7 +174,7 @@ class SubmissionCommentsView(APIView):
 		logger.info(f'Flat: {flat}')
 
 		# Get submissions generator according to query_params and with the limit + offset?
-		comments_generator = self.__get_comments(
+		comments_generator = self._get_comments(
 			submission, sort, limit + offset, flat)
 
 		comments = []

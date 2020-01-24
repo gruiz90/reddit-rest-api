@@ -241,15 +241,15 @@ class SubredditSubmissions(APIView):
 	authentication_classes = [MyTokenAuthentication]
 	permission_classes = [IsAuthenticated]
 
-	__sortings = ['controversial', 'gilded', 'hot', 'new', 'rising', 'top']
-	__time_filters = ['all', 'hour', 'month', 'week', 'year']
+	_sortings = ['controversial', 'gilded', 'hot', 'new', 'rising', 'top']
+	_time_filters = ['all', 'hour', 'month', 'week', 'year']
 
 	def __validate_query_params(self, sort, time_filter, offset):
-		if sort not in self.__sortings:
+		if sort not in self._sortings:
 			raise exceptions.ParseError(
                 detail={'detail': f'Sort type {sort} invalid.'})
 		elif sort == 'controversial' or sort == 'top':
-			if time_filter not in self.__time_filters:
+			if time_filter not in self._time_filters:
 				raise exceptions.ParseError(
                 	detail={'detail': f'Time filter {time_filter} invalid.'})
 		try:
@@ -264,7 +264,7 @@ class SubredditSubmissions(APIView):
 		return offset
 
 
-	def __get_submissions(self, subreddit, sort, time_filter, limit):
+	def _get_submissions(self, subreddit, sort, time_filter, limit):
 		if sort == 'hot':
 			return subreddit.hot(limit=limit)
 		elif sort == 'rising':
@@ -302,7 +302,7 @@ class SubredditSubmissions(APIView):
 		logger.info(f'offset: {offset}')
 
 		# Get submissions generator according to query_params and with the limit + offset?
-		submissions_generator = self.__get_submissions(subreddit, sort, time_filter, offset + 5)
+		submissions_generator = self._get_submissions(subreddit, sort, time_filter, offset + 5)
 
 		submissions = []
 		for index, sub in enumerate(submissions_generator, start=1):

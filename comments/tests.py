@@ -14,7 +14,7 @@ class CommentsTests(APITestCase):
 		self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token_key}')
 
 	def _dummy_comment_request(self, path, post=False):
-		url = reverse(path, args=['dummy'])
+		url = reverse(path, args=['1234567890'])
 		if post:
 			response = self.client.post(f'{url}')
 		else:
@@ -22,7 +22,7 @@ class CommentsTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 		self.assertEqual(response.data, {'error': {
                     'code': 404,
-                    'messages': ['detail: No comment exists with the id: dummy.']
+                    'messages': ['detail: No comment exists with the id: 1234567890.']
                 }})
 
 	def test_comment_info(self):

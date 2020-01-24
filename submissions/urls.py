@@ -4,7 +4,7 @@ import submissions.views as views
 app_name = 'submissions'
 
 urlpatterns = [
-	path('<str:id>', views.SubmissionView.as_view()),
-	path('<str:id>/vote', views.SubmissionVoteView.as_view()),
-	path('<str:id>/comments', views.SubmissionCommentsView.as_view()),
+	path('<str:id>', views.SubmissionView.as_view(), name='submission_info'),
+	path('<str:id>/vote', views.SubmissionVoteView.as_view(), name='submission_vote'),
+	path('<str:id>/comments', views.SubmissionCommentsView.as_view(), name='submission_comments'),
 ]

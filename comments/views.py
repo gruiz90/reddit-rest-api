@@ -80,7 +80,9 @@ class CommentVoteView(APIView):
 		# Get vote value from data json and check if valid
 		vote_value = self.__validate_vote_value(request.data.get('vote_value'))
 
-		if not reddit.read_only:
+		if reddit.read_only:
+			vote_action = 'dummy'
+		else:
 			if vote_value == -1:
 				vote_action = 'Downvote'
 				comment.downvote()
@@ -90,8 +92,6 @@ class CommentVoteView(APIView):
 			else:
 				vote_action = 'Upvote'
 				comment.upvote()
-		else:
-			vote_action = 'dummy'
 
 		return Response({'detail': f'Vote action \'{vote_action}\' successful for comment with id: {id}!'},
 						status=status.HTTP_200_OK)
@@ -135,7 +135,7 @@ class CommentRepliesView(APIView):
 		return limit, offset
 
 
-	def __get_replies(self, comment, flat):
+	def _get_replies(self, comment, flat):
 		comment.replies.replace_more(limit=None)
 		if flat:
 			return comment.replies.list()
@@ -169,7 +169,7 @@ class CommentRepliesView(APIView):
 		logger.info(f'Total top replies: {len(comment.replies)}')
 
 		# Get replies generator from the comment instance
-		replies_generator = self.__get_replies(comment, flat)
+		replies_generator = self._get_replies(comment, flat)
 
 		replies = []
 		for index, reply in enumerate(replies_generator, start=1):

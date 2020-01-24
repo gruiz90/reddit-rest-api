@@ -367,7 +367,7 @@ class SalesforceOauthCallbackView(APIView):
 						'Salesforce oauth code saved in cache succesfully!')
 
 					# Create request to ask for access_token
-					req = self.make_token_request(code)
+					req = self._make_token_request(code)
 					logger.debug(req.status_code)
 
 					if req.status_code == 200:
@@ -375,7 +375,7 @@ class SalesforceOauthCallbackView(APIView):
 						response_json = req.json()
 						logger.debug(f'Response JSON: {response_json}')
 
-						if self.signature_verifies(response_json):
+						if self._signature_verifies(response_json):
 							logger.info('Signature verified succesfully!')
 							# Save the instance_url and access token here...
 							instance_url = response_json['instance_url']
@@ -417,7 +417,7 @@ class SalesforceOauthCallbackView(APIView):
 		# Redirect to the instance_url if ok, else to generic Salesforce login
 		return redirect(redirect_instance)
 
-	def make_token_request(self, code):
+	def _make_token_request(self, code):
 		# Create Authorization header as Basic Encode64(client_id:client_secret)
 		basic_auth_encoded_bytes = base64.b64encode(
 			f'{self.client_id}:{self.client_secret}'.encode('utf-8'))
@@ -435,7 +435,7 @@ class SalesforceOauthCallbackView(APIView):
 		return requests.post(self.endpoint_url,
 							 headers=headers, params=payload)
 
-	def signature_verifies(self, response_json):
+	def _signature_verifies(self, response_json):
 		# Here I need to verify the signature in the json
 		# It's a Base64-encoded HMAC-SHA256 containing the concatened
 		# id and issued_at values. The key is the client_secret
@@ -522,7 +522,7 @@ class SalesforceRevokeAccessView(APIView):
 			'detail': f'Oauth access token revoked for Salesforce org with id: {org_id}.'}
 		if refresh_token:
 			# Now call Salesforce oauth revoke endpoint
-			req = self.make_revoke_request(refresh_token)
+			req = self._make_revoke_request(refresh_token)
 			response_text = req.text
 			if req.status_code == 200:
 				response_data['revoke_result'] = 'Oauth token revoked successfully.'
@@ -535,7 +535,7 @@ class SalesforceRevokeAccessView(APIView):
 
 		return Response(data=response_data, status=status.HTTP_200_OK)
 
-	def make_revoke_request(self, refresh_token):
+	def _make_revoke_request(self, refresh_token):
 		headers = {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		}
