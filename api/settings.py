@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 ALLOWED_HOSTS = []
 
 # Force HTTPs for all api requests when running in the heroku app domain
-if 'herokuapp.com' in os.environ.get('DOMAIN_URL'):
+if 'herokuapp.com' in os.environ.get('DOMAIN_URL', ''):
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
