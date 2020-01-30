@@ -30,9 +30,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 ALLOWED_HOSTS = []
 
+# Force HTTPs for all api requests when running in the heroku app domain
+if 'herokuapp.com' in os.environ.get('DOMAIN_URL'):
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -171,7 +174,7 @@ REST_FRAMEWORK = {
         'api.renderers.CustomJSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    # Add cutom exception handler
+    # Add custom exception handler
     'EXCEPTION_HANDLER': 'api.utils.custom_json_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
