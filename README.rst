@@ -1,7 +1,7 @@
 Heroku Reddit API
 =================
 
-|Heroku| |Heroku CI Status|
+|Heroku| |Heroku CI Status| |Code Style|
 
 .. |Heroku| image:: https://heroku-badge.herokuapp.com/?app=reddit-rest-api&root=clients/me
    :target: https://reddit-rest-api.herokuapp.com
