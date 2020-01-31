@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+
 # import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -48,7 +49,7 @@ INSTALLED_APPS = [
     'clients',
     'redditors',
     'subreddits',
-	'submissions',
+    'submissions',
 ]
 
 MIDDLEWARE = [
@@ -101,13 +102,11 @@ DATABASES = {
 # https://github.com/heroku/django-heroku/issues/17
 # to be resolved.
 if os.environ.get('CI'):
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'HerokuCI'
-    }
+    DATABASES['default'] = {'ENGINE': 'django.db.backends.sqlite3', 'NAME': 'HerokuCI'}
 else:
     # To use heroku postgress properly
     import django_heroku
+
     django_heroku.settings(locals())
     # override DATABASE_URL set by django_heroku because it forces SSL mode locally
     # ssl_require = os.environ.get('ENV', 'development') != 'testing'
@@ -115,12 +114,10 @@ else:
     #     conn_max_age=django_heroku.MAX_CONN_AGE, ssl_require=ssl_require)
 
 CACHES = {
-    "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": os.environ.get('REDIS_URL'),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL'),
+        'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
     },
 }
 
@@ -131,15 +128,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 
@@ -161,7 +152,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = "/static/"
+STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -183,36 +174,3 @@ REST_FRAMEWORK = {
 
 # To be able to use encrypted model fields
 FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
-
-
-# LOGGING_CONFIG = None
-# LOGLEVEL = os.environ.get('LOGLEVEL', 'debug').upper()
-# logging.config.dictConfig({
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'console': {
-#             # exact format is not important, this is the minimum information
-#             'format': '%(name)-12s %(levelname)-8s %(message)s',
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'console',
-#         },
-#     },
-#     'loggers': {
-#         # root logger
-#         '': {
-#             'level': 'WARNING',
-#             'handlers': ['console'],
-#         },
-#         'accounts': {
-#             'level': LOGLEVEL,
-#             'handlers': ['console'],
-#             # required to avoid double logging with root logger
-#             'propagate': False,
-#         },
-#     },
-# })

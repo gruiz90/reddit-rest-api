@@ -3,6 +3,7 @@ from rest_framework import exceptions
 from django.core.cache import cache
 
 from api.utils import Utils
+
 logger = Utils.init_logger(__name__)
 
 
@@ -20,16 +21,17 @@ class MyOauthConfirmPermission(BasePermission):
         logger.info(request.user)
         state = request.query_params.get('state')
         if not state:
-            raise exceptions.ParseError(
-                detail={'detail': 'state param not found'})
+            raise exceptions.ParseError(detail={'detail': 'state param not found'})
         oauth_data = cache.get(f'oauth_{state}')
         if not oauth_data:
             raise exceptions.PermissionDenied(
-                detail={'detail': 'Invalid or expired state'})
+                detail={'detail': 'Invalid or expired state'}
+            )
         else:
             if request.method == 'POST' and oauth_data['status'] != 'accepted':
                 raise exceptions.PermissionDenied(
-                    detail={'detail': 'Authorization still pending.'})
+                    detail={'detail': 'Authorization still pending.'}
+                )
 
         # Write permissions are only allowed to the owner of the snippet.
         # return obj.owner == request.user

@@ -23,11 +23,11 @@ admin.autodiscover()
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-	path('', lambda request: redirect('clients/me', permanent=False)),
+    path('', lambda request: redirect('clients/me', permanent=False)),
     path('clients/', include('clients.urls', namespace='clients')),
     path('redditors/', include('redditors.urls', namespace='redditors')),
-	path('subreddits/', include('subreddits.urls', namespace='subreddits')),
-	path('submissions/', include('submissions.urls', namespace='submissions')),
-	path('comments/', include('comments.urls', namespace='comments')),
-	path('admin/', admin.site.urls),
+    path('subreddits/', include('subreddits.urls', namespace='subreddits')),
+    path('submissions/', include('submissions.urls', namespace='submissions')),
+    path('comments/', include('comments.urls', namespace='comments')),
+    path('admin/', admin.site.urls),
 ]

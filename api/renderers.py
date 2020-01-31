@@ -9,6 +9,7 @@ class CustomJSONRenderer(JSONRenderer):
             response_data = {'data': data}
         # call super to render the response
         response = super(CustomJSONRenderer, self).render(
-            response_data, accepted_media_type, renderer_context)
+            response_data, accepted_media_type, renderer_context
+        )
 
         return response

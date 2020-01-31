@@ -1,4 +1,4 @@
-redditenv
+venv
 .vscode
 *.pyc
 staticfiles

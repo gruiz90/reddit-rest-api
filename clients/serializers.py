@@ -15,17 +15,21 @@ class ClientOrgSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.connected_at = validated_data.get(
-            'connected_at', instance.connected_at)
+            'connected_at', instance.connected_at
+        )
         instance.disconnected_at = validated_data.get(
-            'disconnected_at', instance.disconnected_at)
+            'disconnected_at', instance.disconnected_at
+        )
         instance.last_client_request_at = validated_data.get(
-            'last_client_request_at', instance.last_client_request_at)
+            'last_client_request_at', instance.last_client_request_at
+        )
         instance.last_client_update_at = validated_data.get(
-            'last_client_update_at', instance.last_client_update_at)
-        instance.is_active = validated_data.get(
-            'is_active', instance.is_active)
+            'last_client_update_at', instance.last_client_update_at
+        )
+        instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.reddit_token = validated_data.get(
-            'reddit_token', instance.reddit_token)
+            'reddit_token', instance.reddit_token
+        )
         instance.save()
         return instance
 
@@ -35,10 +39,17 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SalesforceOrg
-        fields = ['org_id', 'org_name', 'instance_url',
-                  'access_token', 'refresh_token',
-                  'package_version', 'clients',
-                  'created_at', 'updated_at']
+        fields = [
+            'org_id',
+            'org_name',
+            'instance_url',
+            'access_token',
+            'refresh_token',
+            'package_version',
+            'clients',
+            'created_at',
+            'updated_at',
+        ]
         read_only = ['org_id', 'created_at', 'updated_at']
         depth = 1
 
@@ -48,13 +59,17 @@ class SalesforceOrgSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.org_name = validated_data.get('org_name', instance.org_name)
         instance.instance_url = validated_data.get(
-            'instance_url', instance.instance_url)
+            'instance_url', instance.instance_url
+        )
         instance.access_token = validated_data.get(
-            'access_token', instance.access_token)
+            'access_token', instance.access_token
+        )
         instance.refresh_token = validated_data.get(
-            'refresh_token', instance.refresh_token)
+            'refresh_token', instance.refresh_token
+        )
         instance.package_version = validated_data.get(
-            'package_version', instance.package_version)
+            'package_version', instance.package_version
+        )
         instance.save()
         return instance
 
