@@ -6,22 +6,15 @@ from redditors.utils import RedditorsUtils
 
 class SubmissionsUtils(object):
     @staticmethod
-    def sub_exists(id, reddit):
-        exists = True
-        try:
-            reddit.submissions.get_submission(submission_id=id)
-        except NotFound:
-            exists = False
-        return exists
-
-    @staticmethod
     def get_sub_if_exists(id, reddit):
         sub = reddit.submission(id=id)
         try:
-            # Check if id exists
-            sub.title
+            sub._fetch()
             return sub
-        except:
+            # # Check if id exists
+            # sub.title
+            # return sub
+        except NotFound:
             return None
 
     @staticmethod

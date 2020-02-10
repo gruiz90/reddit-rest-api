@@ -2,7 +2,7 @@
 from .models import Subreddit
 from .serializers import SubredditSerializer
 from datetime import datetime
-from prawcore import NotFound
+from prawcore import NotFound, Forbidden
 
 
 class SubredditsUtils(object):
@@ -30,6 +30,17 @@ class SubredditsUtils(object):
                 if name.lower() == sub.display_name.lower():
                     return reddit.subreddit(name)
         return None
+
+    @staticmethod
+    def get_sub_if_available(name, reddit):
+        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        try:
+            # Just check if I have access to the id attribute
+            if subreddit and subreddit.id:
+                return subreddit
+            return None
+        except Forbidden:
+            return None
 
     @staticmethod
     def get_subreddit_data(subreddit):

@@ -8,16 +8,6 @@ from submissions.utils import SubmissionsUtils
 
 
 class CommentsUtils(object):
-
-    # @staticmethod
-    # def _exists(id, reddit):
-    # 	exists = True
-    # 	try:
-    # 		reddit.submissions.get_submission(submission_id=id)
-    # 	except NotFound:
-    # 		exists = False
-    # 	return exists
-
     @staticmethod
     def get_comment_if_exists(id, reddit):
         comment = reddit.comment(id)

@@ -15,15 +15,6 @@ class RedditorsUtils(object):
         return serializer.save()
 
     @staticmethod
-    def redditor_exists(name, reddit):
-        exists = True
-        try:
-            reddit.redditors.search_by_name(name, exact=True)
-        except NotFound:
-            exists = False
-        return exists
-
-    @staticmethod
     def get_redditor_if_exists(name, reddit):
         redditor = reddit.redditor(name)
         try:

@@ -39,7 +39,7 @@ class ConnectSubreddit(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
@@ -80,7 +80,7 @@ class DisconnectSubreddit(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
@@ -119,7 +119,7 @@ class SubredditView(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
@@ -177,7 +177,7 @@ class SubredditRules(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
@@ -202,7 +202,7 @@ class SubredditSubscribe(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
@@ -234,7 +234,7 @@ class SubredditUnsubscribe(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
@@ -311,7 +311,7 @@ class SubredditSubmissions(APIView):
         client_org = request.user
         reddit = Utils.new_client_request(client_org)
         # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_exists(name, reddit)
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
             raise exceptions.NotFound(
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
