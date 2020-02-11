@@ -2,7 +2,6 @@
 from datetime import datetime
 from .serializers import RedditorSerializer
 from .models import Redditor
-from prawcore import NotFound
 
 
 class RedditorsUtils(object):
@@ -19,9 +18,9 @@ class RedditorsUtils(object):
         redditor = reddit.redditor(name)
         try:
             redditor._fetch()
-            return redditor
-        except NotFound:
+        except:
             return None
+        return redditor
 
     @staticmethod
     def get_redditor_data_simple(redditor):

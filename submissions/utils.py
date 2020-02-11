@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from datetime import datetime
-from prawcore import NotFound
 from redditors.utils import RedditorsUtils
 
 
@@ -10,12 +9,9 @@ class SubmissionsUtils(object):
         sub = reddit.submission(id=id)
         try:
             sub._fetch()
-            return sub
-            # # Check if id exists
-            # sub.title
-            # return sub
-        except NotFound:
+        except:
             return None
+        return sub
 
     @staticmethod
     def get_submission_data_simple(submission):
