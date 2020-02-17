@@ -264,7 +264,7 @@ class SubredditSubmissions(APIView):
     permission_classes = [IsAuthenticated]
 
     _sortings = ['controversial', 'gilded', 'hot', 'new', 'rising', 'top']
-    _time_filters = ['all', 'hour', 'month', 'week', 'year']
+    _time_filters = ['all', 'day', 'hour', 'month', 'week', 'year']
 
     def __validate_query_params(self, sort, time_filter, offset):
         if sort not in self._sortings:
