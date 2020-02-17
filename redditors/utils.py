@@ -24,14 +24,17 @@ class RedditorsUtils(object):
 
     @staticmethod
     def get_redditor_data_simple(redditor):
-        return {
-            'id': redditor.id,
-            'name': redditor.name,
-            'created_utc': datetime.utcfromtimestamp(redditor.created_utc),
-            'icon_img': redditor.icon_img,
-            'comment_karma': redditor.comment_karma,
-            'link_karma': redditor.link_karma,
-        }
+        if redditor:
+            return {
+                'id': redditor.id,
+                'name': redditor.name,
+                'created_utc': datetime.utcfromtimestamp(redditor.created_utc),
+                'icon_img': redditor.icon_img,
+                'comment_karma': redditor.comment_karma,
+                'link_karma': redditor.link_karma,
+            }
+        else:
+            return None
 
     @staticmethod
     def get_redditor_data(redditor):

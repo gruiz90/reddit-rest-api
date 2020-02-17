@@ -20,7 +20,7 @@ class SubmissionsUtils(object):
             'name': submission.name,
             'title': submission.title,
             'created_utc': datetime.utcfromtimestamp(submission.created_utc),
-            'author_name': submission.author.name,
+            'author_name': submission.author.name if submission.author is not None else None,
             'num_comments': submission.num_comments,
             'score': submission.score,
             'url': submission.url,
