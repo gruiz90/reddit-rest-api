@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from api.token_authentication import MyTokenAuthentication
 from .utils import SubredditsUtils
 from submissions.utils import SubmissionsUtils
@@ -108,7 +109,7 @@ class SubredditView(APIView):
 	API endpoint to get the Subreddit data by the name provided.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, name, Format=None):
@@ -138,7 +139,7 @@ class SubredditSubscriptions(APIView):
 	API endpoint to get a list of subreddits subscriptions for the client.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, Format=None):
@@ -166,7 +167,7 @@ class SubredditRules(APIView):
 	API endpoint to get the rules of a subreddit by name.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, name, Format=None):
@@ -191,7 +192,7 @@ class SubredditSubscribe(APIView):
 	API endpoint to subscribe a Salesforce org client to a subreddit by the name.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, name, Format=None):
@@ -223,7 +224,7 @@ class SubredditUnsubscribe(APIView):
 	API endpoint to unsubscribe a Salesforce org client from a subreddit by the name.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, name, Format=None):
@@ -260,7 +261,7 @@ class SubredditSubmissions(APIView):
 	time_filter only used when sort=[controversial|top]
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     _sortings = ['controversial', 'gilded', 'hot', 'new', 'rising', 'top']
