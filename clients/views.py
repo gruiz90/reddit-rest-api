@@ -13,6 +13,7 @@ from django.views.generic.base import RedirectView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from django.core.cache import cache
 from django.utils.timezone import now
 
@@ -229,7 +230,7 @@ class ClientView(APIView):
 	Expects a valid bearer token in the Authorization header.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, Format=None):
@@ -268,7 +269,7 @@ class ClientDisconnectView(APIView):
 	changes the Client Org to inactive status.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, Format=None):

@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from api.token_authentication import MyTokenAuthentication
 from .utils import CommentsUtils
 
@@ -16,7 +17,7 @@ class CommentView(APIView):
 	API endpoint to get the Coment data by the id provided.
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id, Format=None):
@@ -48,7 +49,7 @@ class CommentVoteView(APIView):
 	data_json: { "vote_value": -1 | 0 | 1}
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def __validate_vote_value(self, vote):
@@ -118,7 +119,7 @@ class CommentRepliesView(APIView):
 				  flat=True|False (default=False)
 	"""
 
-    authentication_classes = [MyTokenAuthentication]
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def __validate_query_params(self, flat, limit, offset):
