@@ -133,7 +133,7 @@ Comments\_Level2, ..., Comments\_LevelN]
 
    **Optional:**
 
-   ``sort=[best|top|new|controversial|old|q&a] (default=best)``
+   ``sort=[best|top|new|controversial|old|q_a] (default=best)``
    ``limit=[0<int<21] (default=10)`` ``offset=[0<=int] (default=0)``
    ``flat=[True|False] (default=False)``
 

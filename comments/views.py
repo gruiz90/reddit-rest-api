@@ -160,7 +160,7 @@ class CommentRepliesView(APIView):
         return limit, offset
 
     def _get_replies(self, comment, flat):
-        comment.replies.replace_more(limit=None)
+        comment.replies.replace_more(limit=0)
         if flat:
             return comment.replies.list()
         else:

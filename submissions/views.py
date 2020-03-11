@@ -112,7 +112,7 @@ class SubmissionCommentsView(APIView):
     """
 	API endpoint to get a Submission top level comments. submissions/<str:id>/comments
 	It returns a max of 20 top level comments per request. Uses offset to get the rest in different request.
-	query_params: sort=[best|top|new|controversial|old|q&a] (default=best)
+	query_params: sort=[best|top|new|controversial|old|q_a] (default=best)
 							  limit=[0<int<21] (default=10)
 							  offset=[0<=int] (default=0)
 							  flat=True|False (default=False)
@@ -121,11 +121,13 @@ class SubmissionCommentsView(APIView):
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
-    _sortings = ['best', 'top', 'new', 'controversial', 'old', 'q&a']
+    _sortings = ['best', 'top', 'new', 'controversial', 'old', 'q_a']
 
     def __validate_query_params(self, sort, flat, limit, offset):
         if sort not in self._sortings:
             raise exceptions.ParseError(detail={'detail': f'Sort type {sort} invalid.'})
+        elif sort == 'q_a':
+            sort = 'q&a'
 
         try:
             flat = bool(flat)
@@ -161,12 +163,12 @@ class SubmissionCommentsView(APIView):
                 detail={'detail': f'offset parameter must be an integer.'}
             )
 
-        return limit, offset
+        return sort, limit, offset
 
     def _get_comments(self, submission, sort, limit, flat):
         submission.comment_sort = sort
         submission.comment_limit = limit
-        submission.comments.replace_more(limit=None)
+        submission.comments.replace_more(limit=0)
         if flat:
             return submission.comments.list()
         else:
@@ -191,7 +193,7 @@ class SubmissionCommentsView(APIView):
         limit = request.query_params.get('limit', 10)
         offset = request.query_params.get('offset', 0)
 
-        limit, offset = self.__validate_query_params(sort, flat, limit, offset)
+        sort, limit, offset = self.__validate_query_params(sort, flat, limit, offset)
         logger.info(f'Sort type: {sort}')
         logger.info(f'Limit: {limit}')
         logger.info(f'Offset: {offset}')
