@@ -91,7 +91,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': os.environ.get('POSTGRES_DATABASE_NAME', 'django_reddit_api'),
         'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'PASSWORD': '',
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': '127.0.0.1',
         'PORT': '5432',
     },
