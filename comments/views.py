@@ -25,8 +25,7 @@ class CommentView(APIView):
         logger.info('New comment details request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         comment = CommentsUtils.get_comment_if_exists(id, reddit)
         if comment is None:
@@ -34,7 +33,7 @@ class CommentView(APIView):
                 detail={'detail': f'No comment exists with the id: {id}.'}
             )
 
-        # Here I need to call refresh() for some reason to get the actual replies count
+        # Here I need to call refresh() to get the actual replies count
         comment.refresh()
         logger.info(f'Total top replies: {len(comment.replies)}')
 
@@ -77,8 +76,7 @@ class CommentVoteView(APIView):
         logger.info('New comment vote request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         comment = CommentsUtils.get_comment_if_exists(id, reddit)
         if comment is None:
@@ -171,8 +169,7 @@ class CommentRepliesView(APIView):
         logger.info('New comment get replies request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get submission instance with the id provided
         comment = CommentsUtils.get_comment_if_exists(id, reddit)
         if comment is None:

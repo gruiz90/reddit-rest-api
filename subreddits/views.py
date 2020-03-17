@@ -9,6 +9,7 @@ from rest_framework.authentication import SessionAuthentication
 from api.token_authentication import MyTokenAuthentication
 from .utils import SubredditsUtils
 from submissions.utils import SubmissionsUtils
+from clients.utils import ClientsUtils
 
 from api.utils import Utils
 
@@ -17,28 +18,27 @@ logger = Utils.init_logger(__name__)
 
 class ConnectSubreddit(APIView):
     """
-	API endpoint to connects a Salesforce org client to a subreddit by the name.
-	This creates a connection between the ClientOrg and Subreddit, subscribes the reddit user if not already
-	and returns all the relevant data about the subreddit.
-	"""
+    API endpoint to connects a Salesforce org client to a subreddit by the name.
+    This creates a connection between the ClientOrg and Subreddit, subscribes the reddit user if not already
+    and returns all the relevant data about the subreddit.
+    """
 
     authentication_classes = [MyTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, name, Format=None):
         """POST request that expects the subreddit name to connect the client to.
-		Arguments:
-				request {[type]} -- DRF Request object
-				name {[string]} -- Subreddit name
-		Keyword Arguments:
-				Format {[string]} -- [description] (default: {None})
-		"""
+        Arguments:
+                request {[type]} -- DRF Request object
+                name {[string]} -- Subreddit name
+        Keyword Arguments:
+                Format {[string]} -- [description] (default: {None})
+        """
         logger.info('-' * 100)
         logger.info('New connect subreddit request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, client_org = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -66,9 +66,9 @@ class ConnectSubreddit(APIView):
 
 class DisconnectSubreddit(APIView):
     """
-	API endpoint to disconnect a Salesforce org client to a Subreddit by the name.
-	This only removes the connection between the ClientOrg and the Subreddit if exists.
-	"""
+    API endpoint to disconnect a Salesforce org client to a Subreddit by the name.
+    This only removes the connection between the ClientOrg and the Subreddit if exists.
+    """
 
     authentication_classes = [MyTokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -78,8 +78,7 @@ class DisconnectSubreddit(APIView):
         logger.info('New disconnect subreddit request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, client_org = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -106,8 +105,8 @@ class DisconnectSubreddit(APIView):
 
 class SubredditView(APIView):
     """
-	API endpoint to get the Subreddit data by the name provided.
-	"""
+    API endpoint to get the Subreddit data by the name provided.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -117,8 +116,7 @@ class SubredditView(APIView):
         logger.info('New subreddit details request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -136,8 +134,8 @@ class SubredditView(APIView):
 
 class SubredditSubscriptions(APIView):
     """
-	API endpoint to get a list of subreddits subscriptions for the client.
-	"""
+    API endpoint to get a list of subreddits subscriptions for the client.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -147,8 +145,7 @@ class SubredditSubscriptions(APIView):
         logger.info('New subreddit subscriptions details request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
 
         if reddit.read_only:
             subreddits = []
@@ -164,8 +161,8 @@ class SubredditSubscriptions(APIView):
 
 class SubredditRules(APIView):
     """
-	API endpoint to get the rules of a subreddit by name.
-	"""
+    API endpoint to get the rules of a subreddit by name.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -175,8 +172,7 @@ class SubredditRules(APIView):
         logger.info('New subreddit get rules request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -189,8 +185,8 @@ class SubredditRules(APIView):
 
 class SubredditSubscribe(APIView):
     """
-	API endpoint to subscribe a Salesforce org client to a subreddit by the name.
-	"""
+    API endpoint to subscribe a Salesforce org client to a subreddit by the name.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -200,8 +196,7 @@ class SubredditSubscribe(APIView):
         logger.info('New subreddit subscribe request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, client_org = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -209,20 +204,35 @@ class SubredditSubscribe(APIView):
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
             )
 
-        if not reddit.read_only and not subreddit.user_is_subscriber:
-            subreddit.subscribe()
-        logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
+        status_code = status.HTTP_200_OK
+        if not reddit.read_only:
+            redditor_name = ClientsUtils.get_redditor_name(client_org)
+            if not subreddit.user_is_subscriber:
+                try:
+                    subreddit.subscribe()
+                    msg = f'Reddit user u/{redditor_name} succesfully subscribed to r/{name}.'
+                    logger.info(msg)
+                except Exception as ex:
+                    msg = f'Error subscribing u/{redditor_name} to r/{name}. Exception raised: {repr(ex)}.'
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                    logger.error(msg)
+            else:
+                msg = f'Reddit user u/{redditor_name} already subscribed to r/{name}.'
+                logger.info(msg)
+        else:
+            msg = (
+                f'Reddit instance is read only. Cannot subscribe to subreddit r/{name}.'
+            )
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
 
-        return Response(
-            {'detail': f'Client succesfully subscribed to {name}.'},
-            status=status.HTTP_200_OK,
-        )
+        return Response({'detail': msg}, status=status_code)
 
 
 class SubredditUnsubscribe(APIView):
     """
-	API endpoint to unsubscribe a Salesforce org client from a subreddit by the name.
-	"""
+    API endpoint to unsubscribe a Salesforce org client from a subreddit by the name.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -232,8 +242,7 @@ class SubredditUnsubscribe(APIView):
         logger.info('New subreddit unsubscribe request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, client_org = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -241,25 +250,40 @@ class SubredditUnsubscribe(APIView):
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
             )
 
-        if not reddit.read_only and subreddit.user_is_subscriber:
-            subreddit.unsubscribe()
-        logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
+        status_code = status.HTTP_200_OK
+        if not reddit.read_only:
+            redditor_name = ClientsUtils.get_redditor_name(client_org)
+            if subreddit.user_is_subscriber:
+                try:
+                    subreddit.unsubscribe()
+                    msg = f'Reddit user u/{redditor_name} succesfully unsubscribed from r/{name}.'
+                    logger.info(msg)
+                except Exception as ex:
+                    msg = f'Error unsubscribing u/{redditor_name} from r/{name}. Exception raised: {repr(ex)}.'
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                    logger.error(msg)
+            else:
+                msg = (
+                    f'Reddit user u/{redditor_name} already unsubscribed from r/{name}.'
+                )
+                logger.info(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot unsubscribe from subreddit r/{name}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
 
-        return Response(
-            {'detail': f'Client succesfully unsubscribed from {name}.'},
-            status=status.HTTP_200_OK,
-        )
+        return Response({'detail': msg}, status=status_code)
 
 
 class SubredditSubmissions(APIView):
     """
-	API endpoint to get a Subreddit submissions. subreddits/<str:name>/submissions
-	It returns a max of 5 submissions per request. Uses offset to get the rest in different request.
-	query_params: sort=[controversial|gilded|hot|new|rising|top] (default=hot)
-				  time_filter=[all|day|hour|month|week|year] (default=all)
-				  offset=[0<=int<11] (default=0)
-	time_filter only used when sort=[controversial|top]
-	"""
+    API endpoint to get a Subreddit submissions. subreddits/<str:name>/submissions
+    It returns a max of 5 submissions per request. Uses offset to get the rest in different request.
+    query_params: sort=[controversial|gilded|hot|new|rising|top] (default=hot)
+                  time_filter=[all|day|hour|month|week|year] (default=all)
+                  offset=[0<=int<11] (default=0)
+    time_filter only used when sort=[controversial|top]
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -309,8 +333,7 @@ class SubredditSubmissions(APIView):
         logger.info('New subreddit get submissions request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
         if subreddit is None:
@@ -349,3 +372,118 @@ class SubredditSubmissions(APIView):
             status=status.HTTP_200_OK,
         )
 
+
+class SubredditSubmitSubmission(APIView):
+    """
+    API endpoint to submit a text, link, image or video submission to a subreddit
+    """
+
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, name, Format=None):
+        logger.info('-' * 100)
+        logger.info('New subreddit submit post request...')
+
+        # Get required data params
+        title = request.data.get('title')
+        if title is None:
+            raise exceptions.ParseError(
+                detail={'detail': f'A title must be provided in the json data.'}
+            )
+        selftext = request.data.get('selftext')
+        url = request.data.get('url')
+
+        if not selftext and not url:
+            # Then it can be an image or video/gif post
+            image_path = request.data.get('image_path')
+            if not image_path:
+                video_path = request.data.get('video_path')
+                if video_path:
+                    videogif = request.data.get('videogif', False)
+                    thumbnail_path = request.data.get('thumbnail_path')
+                else:
+                    raise exceptions.ParseError(
+                        detail={
+                            'detail': 'Either a selftext, url, \
+                            image_path or video_path must be provided in the json data.'
+                        }
+                    )
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        # Get subreddit instance with the name provided
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
+        if subreddit is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No subreddit exists with the name: {name}.'}
+            )
+
+        # Now get optional data parameters
+        flair_id = request.data.get('flair_id')
+        flair_text = request.data.get('flair_text')
+        resubmit = request.data.get('resubmit', True)
+        send_replies = request.data.get('send_replies', True)
+        nsfw = request.data.get('nsfw', False)
+        spoiler = request.data.get('spoiler', False)
+
+        status_code = status.HTTP_201_CREATED
+        if not reddit.read_only:
+            try:
+                submission = None
+                if selftext or url:
+                    submission = subreddit.submit(
+                        title,
+                        selftext,
+                        url,
+                        flair_id,
+                        flair_text,
+                        resubmit,
+                        send_replies,
+                        nsfw,
+                        spoiler,
+                    )
+                elif image_path:
+                    # Not waiting the response here.. Not using websockets
+                    submission = subreddit.submit_image(
+                        title,
+                        image_path,
+                        flair_id,
+                        flair_text,
+                        resubmit,
+                        send_replies,
+                        nsfw,
+                        spoiler,
+                        without_websockets=True,
+                    )
+                else:
+                    # Not waiting the response here.. Not using websockets
+                    subreddit.submit_video(
+                        title,
+                        video_path,
+                        videogif,
+                        thumbnail_path,
+                        flair_id,
+                        flair_text,
+                        resubmit,
+                        send_replies,
+                        nsfw,
+                        spoiler,
+                        without_websockets=True,
+                    )
+                redditor_name = ClientsUtils.get_redditor_name(client_org)
+                if submission:
+                    msg = f'New text/link submission created in r/{name} by u/{redditor_name} with id: {submission.id}.'
+                else:
+                    msg = f'New image/video/gif submission created in r/{name} by u/{redditor_name}.'
+                logger.info(msg)
+            except Exception as ex:
+                msg = f'Error creating submission. Exception raised: {repr(ex)}.'
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                logger.error(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot submit a post creation in the subreddit {name}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response({'detail': msg}, status=status_code)

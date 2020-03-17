@@ -26,8 +26,7 @@ class SubmissionView(APIView):
         logger.info('New submission details request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
         if submission is None:
@@ -75,8 +74,7 @@ class SubmissionVoteView(APIView):
         logger.info('New submission vote request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
         if submission is None:
@@ -179,8 +177,7 @@ class SubmissionCommentsView(APIView):
         logger.info('New submission get comments request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get submission instance with the id provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
         if submission is None:

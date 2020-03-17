@@ -89,8 +89,8 @@ WSGI_APPLICATION = 'api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'heroku_reddit',
-        'USER': 'gruiz',
+        'NAME': os.environ.get('POSTGRES_DATABASE_NAME', 'django_reddit_api'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
         'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '5432',

@@ -30,4 +30,9 @@ urlpatterns = [
         views.SubredditSubmissions.as_view(),
         name='subreddit_submissions',
     ),
+    path(
+        '<str:name>/submit',
+        views.SubredditSubmitSubmission.as_view(),
+        name='subreddit_submit_submission',
+    ),
 ]

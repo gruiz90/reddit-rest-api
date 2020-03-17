@@ -94,9 +94,13 @@ class SubredditsTests(APITestCase):
         sub_name = 'Python'
         url = reverse(f'subreddits:subreddit_{action}', args=[sub_name])
         response = self.client.post(f'{url}')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        action_string = 'subscribe to' if action == 'subscribe' else 'unsubscribe from'
         self.assertEqual(
-            response.data, {'detail': f'Client succesfully {action_msg} {sub_name}.'}
+            response.data,
+            {
+                'detail': f'Reddit instance is read only. Cannot {action_string} subreddit r/{sub_name}.'
+            },
         )
 
     def test_subreddit_subscribe_unsubscribe(self):

@@ -238,7 +238,7 @@ class ClientView(APIView):
         logger.info('Get redditor data for authenticated reddit account...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        reddit = Utils.new_client_request(request.user)
+        reddit, _ = Utils.new_client_request(request.user)
 
         subreddits = []
         if reddit.read_only:

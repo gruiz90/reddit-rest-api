@@ -74,13 +74,13 @@ class Utils(object):
     @staticmethod
     def new_client_request(auth_client):
         """
-		Receives an auth_client instance from request.user and returns the authorized reddit instance
-		ready to use if the token authentication was correct, or if there is a client org corresponding
+        Receives an auth_client instance from request.user and returns the authorized reddit instance
+        ready to use if the token authentication was correct, or if there is a client org corresponding
         with the authorized session user. If no client_org is found then the reddit instance is read only.
-		Arguments:
-			auth_client {[ClientOrg | Django.AuthUser]} --
+        Arguments:
+            auth_client {[ClientOrg | Django.AuthUser]} --
             [ClientOrg object with validated reddit_token | Django super user]
-		"""
+        """
         client_org = None
         if type(auth_client) is not ClientOrg:
             # Here I need to get a valid client org for the authenticated user, look for a redditor with
@@ -100,10 +100,10 @@ class Utils(object):
 
         if client_org:
             client_org.new_client_request()
-            return Utils.get_reddit_instance(token=client_org.reddit_token)
+            return Utils.get_reddit_instance(token=client_org.reddit_token), client_org
         else:
             # Read only reddit instance when no client org found
-            return Utils.get_reddit_instance()
+            return Utils.get_reddit_instance(), None
 
     @staticmethod
     def save_valid_state_in_cache(key, org_id=None):

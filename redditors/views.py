@@ -30,7 +30,7 @@ class RedditorAccountView(APIView):
         logger.info('Get redditor data for authenticated reddit account...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        reddit = Utils.new_client_request(request.user)
+        reddit, _ = Utils.new_client_request(request.user)
 
         subreddits = []
         if reddit.read_only:
@@ -70,8 +70,7 @@ class RedditorView(APIView):
         logger.info('Get redditor data request...')
 
         # Gets the reddit instance from the user in request (ClientOrg)
-        client_org = request.user
-        reddit = Utils.new_client_request(client_org)
+        reddit, _ = Utils.new_client_request(request.user)
         # Get redditor instance with the name provided
         redditor = RedditorsUtils.get_redditor_if_exists(name, reddit)
         if redditor is None:

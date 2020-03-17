@@ -129,6 +129,7 @@ class Token(models.Model):
 
     def generate_key(self):
         return binascii.hexlify(os.urandom(20)).decode()
+
     def __str__(self):
         return self.key
 
