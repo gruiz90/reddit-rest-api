@@ -426,6 +426,7 @@ class SubredditSubmitSubmission(APIView):
         send_replies = request.data.get('send_replies', True)
         nsfw = request.data.get('nsfw', False)
         spoiler = request.data.get('spoiler', False)
+        collection_id = request.data.get('collection_id', False)
 
         status_code = status.HTTP_201_CREATED
         if not reddit.read_only:
@@ -442,6 +443,7 @@ class SubredditSubmitSubmission(APIView):
                         send_replies,
                         nsfw,
                         spoiler,
+                        collection_id,
                     )
                 elif image_path:
                     # Not waiting the response here.. Not using websockets
@@ -454,6 +456,7 @@ class SubredditSubmitSubmission(APIView):
                         send_replies,
                         nsfw,
                         spoiler,
+                        collection_id=collection_id,
                         without_websockets=True,
                     )
                 else:
@@ -469,6 +472,7 @@ class SubredditSubmitSubmission(APIView):
                         send_replies,
                         nsfw,
                         spoiler,
+                        collection_id=collection_id,
                         without_websockets=True,
                     )
                 redditor_name = ClientsUtils.get_redditor_name(client_org)
