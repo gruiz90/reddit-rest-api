@@ -5,7 +5,7 @@ app_name = 'subreddits'
 
 urlpatterns = [
     path('', views.SubredditSubscriptions.as_view(), name='subreddit_subscriptions'),
-    path('<str:name>', views.SubredditView.as_view(), name='subreddit_info'),
+    path('<str:name>', views.SubredditInfo.as_view(), name='subreddit_info'),
     path(
         '<str:name>/connect', views.ConnectSubreddit.as_view(), name='subreddit_connect'
     ),
@@ -26,13 +26,13 @@ urlpatterns = [
         name='subreddit_unsubscribe',
     ),
     path(
-        '<str:name>/submissions',
-        views.SubredditSubmissions.as_view(),
-        name='subreddit_submissions',
-    ),
-    path(
         '<str:name>/submit',
         views.SubredditSubmitSubmission.as_view(),
         name='subreddit_submit_submission',
+    ),
+    path(
+        '<str:name>/submissions',
+        views.SubredditSubmissions.as_view(),
+        name='subreddit_submissions',
     ),
 ]

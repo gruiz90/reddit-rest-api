@@ -17,9 +17,9 @@ class SubredditsTests(APITestCase):
     def _dummy_subreddit_request(self, path, post=False):
         url = reverse(path, args=['dummy_name'])
         if post:
-            response = self.client.post(f'{url}')
+            response = self.client.post(url)
         else:
-            response = self.client.get(f'{url}')
+            response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(
             response.data,
@@ -35,54 +35,54 @@ class SubredditsTests(APITestCase):
 
     def test_subreddit_info(self):
         """
-		Function to test subreddit_info endpoint when having the bearer token.
-		I can use the read_only mod of reddit instance to get an actual subreddit data.
-		"""
+        Function to test subreddit_info endpoint when having the bearer token.
+        I can use the read_only mod of reddit instance to get an actual subreddit data.
+        """
         # First try with a dummy name to get 404 response
         self._dummy_subreddit_request('subreddits:subreddit_info')
 
         # Now try with a real subreddit name
-        url = reverse('subreddits:subreddit_info', args=['Python'])
-        response = self.client.get(f'{url}')
+        url = reverse('subreddits:subreddit_info', args=['test'])
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue('Python' in response.data['display_name'])
+        self.assertTrue('test' in response.data['display_name'])
 
     def test_subreddit_subscriptions(self):
         """
-		Function to test subreddit_subscriptions endpoint when having the bearer token.
-		"""
+        Function to test subreddit_subscriptions endpoint when having the bearer token.
+        """
         url = reverse('subreddits:subreddit_subscriptions')
-        response = self.client.get(f'{url}')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(response.data['subscriptions']) == 0)
 
     def test_subreddit_rules(self):
         """
-		Function to test subreddit_rules endpoint when having the bearer token.
-		I can use the read_only mod of reddit instance to get an actual subreddit data.
-		"""
+        Function to test subreddit_rules endpoint when having the bearer token.
+        I can use the read_only mod of reddit instance to get an actual subreddit data.
+        """
         # First try with a dummy name to get 404 response
         self._dummy_subreddit_request('subreddits:subreddit_rules')
 
         # Now try with a real subreddit name
         url = reverse('subreddits:subreddit_rules', args=['Python'])
-        response = self.client.get(f'{url}')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(response.data['rules']) > 0)
 
     def test_subreddit_submissions(self):
         """
-		Function to test subreddit_submissions endpoint when having the bearer token.
-		I can use the read_only mod of reddit instance to get an actual subreddit data.
-		"""
+        Function to test subreddit_submissions endpoint when having the bearer token.
+        I can use the read_only mod of reddit instance to get an actual subreddit data.
+        """
         # First try with a dummy name to get 404 response
         self._dummy_subreddit_request('subreddits:subreddit_submissions')
 
         # Now try with a real subreddit name
-        url = reverse('subreddits:subreddit_submissions', args=['Python'])
+        url = reverse('subreddits:subreddit_submissions', args=['test'])
         offset = 5
         response = self.client.get(
-            f'{url}', {'sort': 'top', 'time_filter': 'year', 'offset': offset}
+            url, {'sort': 'top', 'time_filter': 'year', 'offset': offset}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(response.data['submissions']) < 6)
@@ -91,23 +91,22 @@ class SubredditsTests(APITestCase):
         )
 
     def _subscribe_unsubscribe_request(self, action, action_msg):
-        sub_name = 'Python'
-        url = reverse(f'subreddits:subreddit_{action}', args=[sub_name])
-        response = self.client.post(f'{url}')
+        url = reverse(f'subreddits:subreddit_{action}', args=['test'])
+        response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         action_string = 'subscribe to' if action == 'subscribe' else 'unsubscribe from'
         self.assertEqual(
             response.data,
             {
-                'detail': f'Reddit instance is read only. Cannot {action_string} subreddit r/{sub_name}.'
+                'detail': f'Reddit instance is read only. Cannot {action_string} subreddit r/test.'
             },
         )
 
     def test_subreddit_subscribe_unsubscribe(self):
         """
-		Function to test subreddit_subscribe and subreddit_unsubscribe endpoints 
-		when having the bearer token.
-		"""
+        Function to test subreddit_subscribe and subreddit_unsubscribe endpoints 
+        when having the bearer token.
+        """
         # First try with a dummy id to get 404 response
         self._dummy_subreddit_request('subreddits:subreddit_subscribe', post=True)
         self._dummy_subreddit_request('subreddits:subreddit_unsubscribe', post=True)
@@ -116,31 +115,24 @@ class SubredditsTests(APITestCase):
         self._subscribe_unsubscribe_request('subscribe', 'subscribed to')
         self._subscribe_unsubscribe_request('unsubscribe', 'unsubscribed from')
 
-    def test_subreddit_connect_disconnnect(self):
+    def test_subreddit_submmit_submission(self):
         """
-		Function to test subreddit_connect and subreddit_disconnect endpoints 
-		when having the bearer token.
-		"""
+        Function to test subreddit_submit_submission.
+        """
         # First try with a dummy id to get 404 response
-        self._dummy_subreddit_request('subreddits:subreddit_connect', post=True)
-        self._dummy_subreddit_request('subreddits:subreddit_disconnect', post=True)
-
-        # Now try with a real subreddit name
-        sub_name = 'Python'
-        url = reverse(f'subreddits:subreddit_connect', args=[sub_name])
-        response = self.client.post(f'{url}')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue('Python' in response.data['display_name'])
-        self.assertEqual(Subreddit.objects.count(), 1)
-        self.assertEqual(
-            Subreddit.objects.all()[0].clients.all()[0].salesforce_org_id,
-            ClientOrg.objects.all()[0].salesforce_org_id,
+        self._dummy_subreddit_request(
+            'subreddits:subreddit_submit_submission', post=True
         )
 
-        url = reverse(f'subreddits:subreddit_disconnect', args=[sub_name])
-        response = self.client.post(f'{url}')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Now try with a real subreddit name only with a title value
+        url = reverse(f'subreddits:subreddit_submit_submission', args=['test'])
+        response = self.client.post(url, data={'title': 'test'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data, {'detail': 'Client disconnected subreddit succesfully.'}
+            response.data['error']['messages'][0],
+            'detail: Either a selftext, url, image_path or video_path must be provided in the json data.',
         )
-        self.assertTrue(Subreddit.objects.all()[0].clients.count() == 0)
+
+        response = self.client.post(url, data={'title': 'test', 'selftext': 'test'})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertTrue('Reddit instance is read only' in response.data['detail'])

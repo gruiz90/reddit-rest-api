@@ -4,6 +4,6 @@ import redditors.views as views
 app_name = 'redditors'
 
 urlpatterns = [
-    path('', views.RedditorAccountView.as_view(), name='my_redditor'),
-    path('<str:name>', views.RedditorView.as_view(), name='redditor_info'),
+    path('', views.RedditorAccount.as_view(), name='my_redditor'),
+    path('<str:name>', views.RedditorInfo.as_view(), name='redditor_info'),
 ]

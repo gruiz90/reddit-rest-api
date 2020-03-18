@@ -15,8 +15,8 @@ class RedditorsTests(APITestCase):
 
     def test_client_redditor(self):
         """
-		Function to test my_redditor endpoint when having the bearer token
-		"""
+        Function to test my_redditor endpoint when having the bearer token
+        """
         url = reverse('redditors:my_redditor')
         response = self.client.get(url)
 
@@ -27,11 +27,11 @@ class RedditorsTests(APITestCase):
 
     def test_redditor_info(self):
         """
-		Function to test redditor_info endpoint when having the bearer token.
-		I can use the read_only mod of reddit instance to get accurate data.
-		"""
+        Function to test redditor_info endpoint when having the bearer token.
+        I can use the read_only mod of reddit instance to get accurate data.
+        """
         url = reverse('redditors:redditor_info', args=['sfdctest'])
-        response = self.client.get(f'{url}')
+        response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('sfdctest', response.data.values())

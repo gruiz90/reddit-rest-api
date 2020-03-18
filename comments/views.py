@@ -39,8 +39,54 @@ class CommentView(APIView):
         logger.info(f'Total top replies: {len(comment.replies)}')
 
         comment_data = CommentsUtils.get_comment_data(comment)
-
         return Response(comment_data, status=status.HTTP_200_OK)
+
+    def patch(self, request, id, Format=None):
+        logger.info('-' * 100)
+        logger.info('New comment edit request...')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        comment = CommentsUtils.get_comment_if_exists(id, reddit)
+        if comment is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No comment exists with the id: {id}.'}
+            )
+
+        # Get the markdown content from json body attribute
+        markdown_body = Utils.validate_body_value(request.data.get('body'))
+
+        status_code = status.HTTP_200_OK
+        updated_comment_data = None
+        if not reddit.read_only:
+            # Only can modify the comment if author is the same as the client redditor
+            # So check for comment redditor and client data
+            comment_redditor = comment.author
+            redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+
+            if comment_redditor.id == redditor_id:
+                # Try to delete the comment now
+                try:
+                    updated_comment = comment.edit(markdown_body)
+                    updated_comment_data = CommentsUtils.get_comment_data(updated_comment)
+                    msg = f'Comment "{updated_comment.id}" successfully edited.'
+                    logger.info(msg)
+                except Exception as ex:
+                    msg = f'Error edit comment. Exception raised: {repr(ex)}.'
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                    logger.error(msg)
+            else:
+                msg = f'Cannot edit the comment "{id}". \
+                    The authenticated reddit user {redditor_name} \
+                        needs to be the same as the comment\'s author: {comment_redditor.name}'
+                status_code = status.HTTP_403_FORBIDDEN
+                logger.info(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot edit comment with id: {id}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response({'detail': msg, 'comment': updated_comment_data}, status=status_code)
 
     def delete(self, request, id, Format=None):
         logger.info('-' * 100)
@@ -58,7 +104,7 @@ class CommentView(APIView):
         if not reddit.read_only:
             # Only can delete the comment if author is the same as the client redditor
             # So check for comment redditor and client data
-            comment_redditor = comment.redditor
+            comment_redditor = comment.author
             redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
 
             if comment_redditor.id == redditor_id:
@@ -74,7 +120,7 @@ class CommentView(APIView):
             else:
                 msg = f'Cannot delete the comment "{id}". \
                     The authenticated reddit user {redditor_name} \
-                        needs to be the same as the comment\'s author: {submission_redditor.name}'
+                        needs to be the same as the comment\'s author: {comment_redditor.name}'
                 status_code = status.HTTP_403_FORBIDDEN
                 logger.info(msg)
         else:
@@ -175,10 +221,12 @@ class CommentReplyView(APIView):
         markdown_body = Utils.validate_body_value(request.data.get('body'))
 
         status_code = status.HTTP_201_CREATED
+        reply_comment_data = None
         if not reddit.read_only:
             # Try to post the comment to the submission
             try:
                 reply_comment = comment.reply(markdown_body)
+                reply_comment_data = CommentsUtils.get_comment_data(reply_comment)
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
                 msg = f'New reply posted by u/{redditor_name} with id "{reply_comment.id}" to comment "{id}"'
                 logger.info(msg)
@@ -195,7 +243,7 @@ class CommentReplyView(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg}, status=status_code)
+        return Response({'detail': msg, 'comment': reply_comment_data}, status=status_code)
 
 
 class CommentRepliesView(APIView):

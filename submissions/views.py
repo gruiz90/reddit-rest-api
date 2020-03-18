@@ -16,7 +16,7 @@ from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 
-class SubmissionView(APIView):
+class SubmissionInfo(APIView):
     """
     API endpoint to get/delete a Submission by the id provided.
     """
@@ -37,9 +37,8 @@ class SubmissionView(APIView):
                 detail={'detail': f'No submission exists with the id: {id}.'}
             )
 
-        # Get data I need from subreddit instance
+        # Get data I need from submission instance
         submission_data = SubmissionsUtils.get_submission_data(submission)
-
         return Response(submission_data, status=status.HTTP_200_OK)
 
     def delete(self, request, id, Format=None):
@@ -52,14 +51,14 @@ class SubmissionView(APIView):
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
         if submission is None:
             raise exceptions.NotFound(
-                detail={'detail': f'No submission exists with id: {id}.'}
+                detail={'detail': f'No submission exists with the id: {id}.'}
             )
 
         status_code = status.HTTP_200_OK
         if not reddit.read_only:
             # Only can delete the submission if author is the same as the reddit instance
             # So check for submission redditor and reddit redditor
-            submission_redditor = submission.redditor
+            submission_redditor = submission.author
             redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
 
             if submission_redditor.id == redditor_id:
@@ -88,7 +87,7 @@ class SubmissionView(APIView):
         return Response({'detail': msg}, status=status_code)
 
 
-class SubmissionVoteView(APIView):
+class SubmissionVote(APIView):
     """
     API endpoint to post a vote for a submission by the id.
     data_json: { "vote_value": -1 | 0 | 1}
@@ -97,7 +96,7 @@ class SubmissionVoteView(APIView):
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def __validate_vote_value(self, vote):
+    def _validate_vote_value(self, vote):
         if vote is None:
             raise exceptions.ParseError(
                 detail={'detail': f'A vote_value must be provided in the json data.'}
@@ -131,7 +130,7 @@ class SubmissionVoteView(APIView):
             )
 
         # Get vote value from data json and check if valid
-        vote_value = self.__validate_vote_value(request.data.get('vote_value'))
+        vote_value = self._validate_vote_value(request.data.get('vote_value'))
 
         if reddit.read_only:
             vote_action = 'dummy'
@@ -154,7 +153,7 @@ class SubmissionVoteView(APIView):
         )
 
 
-class SubmissionReplyView(APIView):
+class SubmissionReply(APIView):
     """
     API endpoint to post a comment in a submission by the id
     Data in json: body - The Markdown formatted content for a comment.
@@ -179,11 +178,13 @@ class SubmissionReplyView(APIView):
         # Get the markdown content from json body attribute
         markdown_body = Utils.validate_body_value(request.data.get('body'))
 
+        comment_data = None
         status_code = status.HTTP_201_CREATED
         if not reddit.read_only:
             # Try to post the comment to the submission
             try:
                 comment = submission.reply(markdown_body)
+                comment_data = CommentsUtils.get_comment_data(comment)
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
                 msg = f'New comment posted by u/{redditor_name} with id "{comment.id}" to submission "{id}"'
                 logger.info(msg)
@@ -200,10 +201,10 @@ class SubmissionReplyView(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg}, status=status_code)
+        return Response({'detail': msg, 'comment': comment_data}, status=status_code)
 
 
-class SubmissionCrosspostView(APIView):
+class SubmissionCrosspost(APIView):
     """
     API endpoint to crosspost a submission to a target subreddit.
     """
@@ -230,8 +231,7 @@ class SubmissionCrosspostView(APIView):
         if not subreddit_name:
             raise exceptions.ParseError(
                 detail={
-                    'detail': f'A subreddit value corresponding to an existent \
-                    subreddit name must be provided in the json data.'
+                    'detail': 'A subreddit value corresponding to an existent subreddit name must be provided in the json data.'
                 }
             )
         else:
@@ -253,12 +253,14 @@ class SubmissionCrosspostView(APIView):
         spoiler = request.data.get('spoiler', False)
 
         status_code = status.HTTP_201_CREATED
+        crosspost_data = None
         if not reddit.read_only:
             # Try to do the crosspost submission now
             try:
                 crosspost = submission.crosspost(
                     subreddit, title, send_replies, flair_id, flair_text, nsfw, spoiler
                 )
+                crosspost_data = SubmissionsUtils.get_submission_data(crosspost)
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
                 msg = f'New crosspost submission created in r/{subreddit_name} by u/{redditor_name} with id: {crosspost.id}.'
                 logger.info(msg)
@@ -275,10 +277,10 @@ class SubmissionCrosspostView(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg}, status=status_code)
+        return Response({'detail': msg, 'submission': crosspost_data}, status=status_code)
 
 
-class SubmissionCommentsView(APIView):
+class SubmissionComments(APIView):
     """
     API endpoint to get a Submission top level comments. submissions/<str:id>/comments
     It returns a max of 20 top level comments per request. Uses offset to get the rest in different request.

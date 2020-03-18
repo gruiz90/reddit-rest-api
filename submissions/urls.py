@@ -4,19 +4,19 @@ import submissions.views as views
 app_name = 'submissions'
 
 urlpatterns = [
-    path('<str:id>', views.SubmissionView.as_view(), name='submission_info'),
-    path('<str:id>/vote', views.SubmissionVoteView.as_view(), name='submission_vote'),
+    path('<str:id>', views.SubmissionInfo.as_view(), name='submission_info'),
+    path('<str:id>/vote', views.SubmissionVote.as_view(), name='submission_vote'),
     path(
-        '<str:id>/reply', views.SubmissionReplyView.as_view(), name='submission_reply'
+        '<str:id>/reply', views.SubmissionReply.as_view(), name='submission_reply'
     ),
     path(
         '<str:id>/crosspost',
-        views.SubmissionCrosspostView.as_view(),
+        views.SubmissionCrosspost.as_view(),
         name='submission_crosspost',
     ),
     path(
         '<str:id>/comments',
-        views.SubmissionCommentsView.as_view(),
+        views.SubmissionComments.as_view(),
         name='submission_comments',
     ),
 ]

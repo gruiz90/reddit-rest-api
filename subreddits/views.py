@@ -103,7 +103,7 @@ class DisconnectSubreddit(APIView):
         )
 
 
-class SubredditView(APIView):
+class SubredditInfo(APIView):
     """
     API endpoint to get the Subreddit data by the name provided.
     """
@@ -385,6 +385,15 @@ class SubredditSubmitSubmission(APIView):
         logger.info('-' * 100)
         logger.info('New subreddit submit post request...')
 
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        # Get subreddit instance with the name provided
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
+        if subreddit is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No subreddit exists with the name: {name}.'}
+            )
+
         # Get required data values
         title = request.data.get('title')
         if title is None:
@@ -405,19 +414,9 @@ class SubredditSubmitSubmission(APIView):
                 else:
                     raise exceptions.ParseError(
                         detail={
-                            'detail': 'Either a selftext, url, \
-                            image_path or video_path must be provided in the json data.'
+                            'detail': 'Either a selftext, url, image_path or video_path must be provided in the json data.'
                         }
                     )
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, client_org = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
-        if subreddit is None:
-            raise exceptions.NotFound(
-                detail={'detail': f'No subreddit exists with the name: {name}.'}
-            )
 
         # Now get optional data values
         flair_id = request.data.get('flair_id')
@@ -429,6 +428,7 @@ class SubredditSubmitSubmission(APIView):
         collection_id = request.data.get('collection_id', False)
 
         status_code = status.HTTP_201_CREATED
+        submission_data = None
         if not reddit.read_only:
             try:
                 submission = None
@@ -447,7 +447,7 @@ class SubredditSubmitSubmission(APIView):
                     )
                 elif image_path:
                     # Not waiting the response here.. Not using websockets
-                    submission = subreddit.submit_image(
+                    subreddit.submit_image(
                         title,
                         image_path,
                         flair_id,
@@ -478,6 +478,7 @@ class SubredditSubmitSubmission(APIView):
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
                 if submission:
                     msg = f'New text/link submission created in r/{name} by u/{redditor_name} with id: {submission.id}.'
+                    submission_data = SubmissionsUtils.get_submission_data(submission)
                 else:
                     msg = f'New image/video/gif submission created in r/{name} by u/{redditor_name}.'
                 logger.info(msg)
@@ -490,4 +491,4 @@ class SubredditSubmitSubmission(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg}, status=status_code)
+        return Response({'detail': msg, 'submission': submission_data}, status=status_code)

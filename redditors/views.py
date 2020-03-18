@@ -15,12 +15,12 @@ from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 
-class RedditorAccountView(APIView):
+class RedditorAccount(APIView):
     """
-	API endpoint to get authenticated Reddit account info.
-	GET request returns the redditor data.
-	Expects a valid bearer token in the Authorization header.
-	"""
+    API endpoint to get authenticated Reddit account info.
+    GET request returns the redditor data.
+    Expects a valid bearer token in the Authorization header.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -55,12 +55,12 @@ class RedditorAccountView(APIView):
         return Response(data=redditor_data, status=status.HTTP_200_OK)
 
 
-class RedditorView(APIView):
+class RedditorInfo(APIView):
     """
-	API endpoint to get a Redditor data by the name. redditors/<str:name>
-	GET request returns the redditor data.
-	Expects a valid bearer token in the Authorization header.
-	"""
+    API endpoint to get a Redditor data by the name. redditors/<str:name>
+    GET request returns the redditor data.
+    Expects a valid bearer token in the Authorization header.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]

@@ -125,12 +125,12 @@ class Utils(object):
     def validate_body_value(body):
         if body is None:
             raise exceptions.ParseError(
-                detail={'detail': f'A body value must be provided in the json data.'}
+                detail={'detail': 'A body value must be provided in the json data.'}
             )
         if not isinstance(body, str):
             raise exceptions.ParseError(
                 detail={
-                    'detail': f'The body must contain the comment in a Markdown format.'
+                    'detail': 'The body must contain the comment in a Markdown format.'
                 }
             )
         return body
