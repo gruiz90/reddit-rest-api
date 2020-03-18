@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from rest_framework.views import exception_handler
+from rest_framework import exceptions
 from django.core.cache import cache
 from datetime import datetime
 from clients.models import ClientOrg
@@ -119,4 +120,18 @@ class Utils(object):
     @staticmethod
     def make_url_with_params(path_url, **kwargs):
         return f'{path_url}?{urllib.parse.urlencode(kwargs)}'
+
+    @staticmethod
+    def validate_body_value(body):
+        if body is None:
+            raise exceptions.ParseError(
+                detail={'detail': f'A body value must be provided in the json data.'}
+            )
+        if not isinstance(body, str):
+            raise exceptions.ParseError(
+                detail={
+                    'detail': f'The body must contain the comment in a Markdown format.'
+                }
+            )
+        return body
 

@@ -4,9 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
+from prawcore.exceptions import Forbidden
+
 from api.token_authentication import MyTokenAuthentication
 from .utils import CommentsUtils
-
+from clients.utils import ClientsUtils
 from api.utils import Utils
 
 logger = Utils.init_logger(__name__)
@@ -14,8 +16,8 @@ logger = Utils.init_logger(__name__)
 
 class CommentView(APIView):
     """
-	API endpoint to get the Coment data by the id provided.
-	"""
+    API endpoint to get/delete a reddit comment by the id provided
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -26,7 +28,6 @@ class CommentView(APIView):
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
         comment = CommentsUtils.get_comment_if_exists(id, reddit)
         if comment is None:
             raise exceptions.NotFound(
@@ -41,12 +42,54 @@ class CommentView(APIView):
 
         return Response(comment_data, status=status.HTTP_200_OK)
 
+    def delete(self, request, id, Format=None):
+        logger.info('-' * 100)
+        logger.info('New comment delete request...')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        comment = CommentsUtils.get_comment_if_exists(id, reddit)
+        if comment is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No comment exists with the id: {id}.'}
+            )
+
+        status_code = status.HTTP_200_OK
+        if not reddit.read_only:
+            # Only can delete the comment if author is the same as the client redditor
+            # So check for comment redditor and client data
+            comment_redditor = comment.redditor
+            redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+
+            if comment_redditor.id == redditor_id:
+                # Try to delete the comment now
+                try:
+                    comment.delete()
+                    msg = f'Comment "{id}" successfully deleted.'
+                    logger.info(msg)
+                except Exception as ex:
+                    msg = f'Error deleting comment. Exception raised: {repr(ex)}.'
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                    logger.error(msg)
+            else:
+                msg = f'Cannot delete the comment "{id}". \
+                    The authenticated reddit user {redditor_name} \
+                        needs to be the same as the comment\'s author: {submission_redditor.name}'
+                status_code = status.HTTP_403_FORBIDDEN
+                logger.info(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot delete comment with id: {id}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response({'detail': msg}, status=status_code)
+
 
 class CommentVoteView(APIView):
     """
-	API endpoint to post a vote for a comment by the id.
-	data_json: { "vote_value": -1 | 0 | 1}
-	"""
+    API endpoint to post a vote for a comment by the id.
+    data_json: { "vote_value": -1 | 0 | 1}
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -77,7 +120,6 @@ class CommentVoteView(APIView):
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
         comment = CommentsUtils.get_comment_if_exists(id, reddit)
         if comment is None:
             raise exceptions.NotFound(
@@ -108,14 +150,62 @@ class CommentVoteView(APIView):
         )
 
 
+class CommentReplyView(APIView):
+    """
+    API endpoint that post a reply to a comment by the id
+    Data in json: body - The Markdown formatted content for a comment.
+    """
+
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id, Format=None):
+        logger.info('-' * 100)
+        logger.info('New comment reply request...')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        comment = CommentsUtils.get_comment_if_exists(id, reddit)
+        if comment is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No comment exists with the id: {id}.'}
+            )
+
+        # Get the markdown content from json body attribute
+        markdown_body = Utils.validate_body_value(request.data.get('body'))
+
+        status_code = status.HTTP_201_CREATED
+        if not reddit.read_only:
+            # Try to post the comment to the submission
+            try:
+                reply_comment = comment.reply(markdown_body)
+                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+                msg = f'New reply posted by u/{redditor_name} with id "{reply_comment.id}" to comment "{id}"'
+                logger.info(msg)
+            except Exception as ex:
+                if isinstance(ex, Forbidden):
+                    msg = f'Cannot create a reply to comment "{id}". Forbidden exception: {repr(ex)}'
+                    status_code = status.HTTP_403_FORBIDDEN
+                else:
+                    msg = f'Error creating reply to comment "{id}". Exception raised: {repr(ex)}.'
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                logger.error(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot create reply to comment with id: {id}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response({'detail': msg}, status=status_code)
+
+
 class CommentRepliesView(APIView):
     """
-	API endpoint to get a comment top level replies. comments/<str:id>/replies
-	It returns a max of 20 top level replies per request. Uses offset to get the rest in different request.
-				  limit=[0<int<21] (default=10)
-				  offset=[0<=int] (default=0)
-				  flat=True|False (default=False)
-	"""
+    API endpoint to get a comment top level replies. comments/<str:id>/replies
+    It returns a max of 20 top level replies per request. Uses offset to get the rest in different request.
+                  limit=[0<int<21] (default=10)
+                  offset=[0<=int] (default=0)
+                  flat=True|False (default=False)
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]

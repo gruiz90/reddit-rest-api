@@ -206,7 +206,7 @@ class SubredditSubscribe(APIView):
 
         status_code = status.HTTP_200_OK
         if not reddit.read_only:
-            redditor_name = ClientsUtils.get_redditor_name(client_org)
+            _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
             if not subreddit.user_is_subscriber:
                 try:
                     subreddit.subscribe()
@@ -252,7 +252,7 @@ class SubredditUnsubscribe(APIView):
 
         status_code = status.HTTP_200_OK
         if not reddit.read_only:
-            redditor_name = ClientsUtils.get_redditor_name(client_org)
+            _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
             if subreddit.user_is_subscriber:
                 try:
                     subreddit.unsubscribe()
@@ -475,7 +475,7 @@ class SubredditSubmitSubmission(APIView):
                         collection_id=collection_id,
                         without_websockets=True,
                     )
-                redditor_name = ClientsUtils.get_redditor_name(client_org)
+                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
                 if submission:
                     msg = f'New text/link submission created in r/{name} by u/{redditor_name} with id: {submission.id}.'
                 else:
