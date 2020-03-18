@@ -10,6 +10,7 @@ from api.token_authentication import MyTokenAuthentication
 from .utils import SubmissionsUtils
 from comments.utils import CommentsUtils
 from clients.utils import ClientsUtils
+from subreddits.utils import SubredditsUtils
 from api.utils import Utils
 
 logger = Utils.init_logger(__name__)
@@ -196,6 +197,81 @@ class SubmissionReplyView(APIView):
                 logger.error(msg)
         else:
             msg = f'Reddit instance is read only. Cannot create comment in submission with id: {id}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response({'detail': msg}, status=status_code)
+
+
+class SubmissionCrosspostView(APIView):
+    """
+    API endpoint to crosspost a submission to a target subreddit.
+    """
+
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id, Format=None):
+        logger.info('-' * 100)
+        logger.info('New submission reply request...')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        # Get subreddit instance with the name provided
+        submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
+        if not submission:
+            raise exceptions.NotFound(
+                detail={'detail': f'No submission exists with the id: {id}.'}
+            )
+
+        # Get required data values from json, in this case only the subreddit name
+        # to crosspost the submission
+        subreddit_name = request.data.get('subreddit')
+        if not subreddit_name:
+            raise exceptions.ParseError(
+                detail={
+                    'detail': f'A subreddit value corresponding to an existent \
+                    subreddit name must be provided in the json data.'
+                }
+            )
+        else:
+            # Check if this subreddit exists?
+            subreddit = SubredditsUtils.get_sub_if_available(subreddit_name, reddit)
+            if not subreddit:
+                raise exceptions.NotFound(
+                    detail={
+                        'detail': f'No subreddit exists with the name: {subreddit_name}.'
+                    }
+                )
+
+        # Now get the optional data values
+        title = request.data.get('title', None)
+        flair_id = request.data.get('flair_id', None)
+        flair_text = request.data.get('flair_text', None)
+        send_replies = request.data.get('send_replies', True)
+        nsfw = request.data.get('nsfw', False)
+        spoiler = request.data.get('spoiler', False)
+
+        status_code = status.HTTP_201_CREATED
+        if not reddit.read_only:
+            # Try to do the crosspost submission now
+            try:
+                crosspost = submission.crosspost(
+                    subreddit, title, send_replies, flair_id, flair_text, nsfw, spoiler
+                )
+                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+                msg = f'New crosspost submission created in r/{subreddit_name} by u/{redditor_name} with id: {crosspost.id}.'
+                logger.info(msg)
+            except Exception as ex:
+                if isinstance(ex, Forbidden):
+                    msg = f'Cannot create the crosspost submission "{id}". Forbidden exception: {repr(ex)}'
+                    status_code = status.HTTP_403_FORBIDDEN
+                else:
+                    msg = f'Error creating crosspost submission "{id}". Exception raised: {repr(ex)}.'
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                logger.error(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot create crosspost submission with id: {id}.'
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 

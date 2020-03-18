@@ -385,7 +385,7 @@ class SubredditSubmitSubmission(APIView):
         logger.info('-' * 100)
         logger.info('New subreddit submit post request...')
 
-        # Get required data params
+        # Get required data values
         title = request.data.get('title')
         if title is None:
             raise exceptions.ParseError(
@@ -419,7 +419,7 @@ class SubredditSubmitSubmission(APIView):
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
             )
 
-        # Now get optional data parameters
+        # Now get optional data values
         flair_id = request.data.get('flair_id')
         flair_text = request.data.get('flair_text')
         resubmit = request.data.get('resubmit', True)
