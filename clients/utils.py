@@ -33,7 +33,7 @@ class ClientsUtils(object):
         return token.key
 
     @staticmethod
-    def get_redditor_name(client_org=None):
+    def get_redditor_id_name(client_org=None):
         """
         Receives a ClientOrg instance and return the redditor name linked to this client org.
         """
@@ -41,5 +41,5 @@ class ClientsUtils(object):
             # Looking for the redditor with the id from the client org instance
             redditor = Redditor.objects.get_or_none(id=client_org.redditor_id)
             if redditor:
-                return redditor.name
-        return None
+                return redditor.id, redditor.name
+        return None, None
