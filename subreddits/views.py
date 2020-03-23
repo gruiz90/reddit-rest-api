@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-from .models import Subreddit
-from .serializers import SubredditSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
-from api.token_authentication import MyTokenAuthentication
+
+from .models import Subreddit
+from .serializers import SubredditSerializer
 from .utils import SubredditsUtils
 from submissions.utils import SubmissionsUtils
 from clients.utils import ClientsUtils
-
+from api.token_authentication import MyTokenAuthentication
 from api.utils import Utils
 
 logger = Utils.init_logger(__name__)
@@ -35,7 +35,7 @@ class ConnectSubreddit(APIView):
                 Format {[string]} -- [description] (default: {None})
         """
         logger.info('-' * 100)
-        logger.info('New connect subreddit request...')
+        logger.info(f'Subreddit "{name}" connect =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -75,7 +75,7 @@ class DisconnectSubreddit(APIView):
 
     def post(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New disconnect subreddit request...')
+        logger.info(f'Subreddit "{name}" disconnect =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -113,7 +113,7 @@ class SubredditInfo(APIView):
 
     def get(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit details request...')
+        logger.info(f'Subreddit "{name}" info request =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -142,7 +142,7 @@ class SubredditSubscriptions(APIView):
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit subscriptions details request...')
+        logger.info(f'Subreddits subscriptions for client =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -169,7 +169,7 @@ class SubredditRules(APIView):
 
     def get(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit get rules request...')
+        logger.info(f'Subreddit "{name}" rules =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -193,7 +193,7 @@ class SubredditSubscribe(APIView):
 
     def post(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit subscribe request...')
+        logger.info(f'Subreddit "{name}" subscribe =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -239,7 +239,7 @@ class SubredditUnsubscribe(APIView):
 
     def post(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit unsubscribe request...')
+        logger.info(f'Subreddit "{name}" unsubscribe =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -291,7 +291,7 @@ class SubredditSubmissions(APIView):
     _sortings = ['controversial', 'gilded', 'hot', 'new', 'rising', 'top']
     _time_filters = ['all', 'day', 'hour', 'month', 'week', 'year']
 
-    def __validate_query_params(self, sort, time_filter, offset):
+    def _validate_query_params(self, sort, time_filter, offset):
         if sort not in self._sortings:
             raise exceptions.ParseError(detail={'detail': f'Sort type {sort} invalid.'})
         elif sort == 'controversial' or sort == 'top':
@@ -330,7 +330,7 @@ class SubredditSubmissions(APIView):
 
     def get(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit get submissions request...')
+        logger.info(f'Subreddit "{name}" submissions =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -345,7 +345,7 @@ class SubredditSubmissions(APIView):
         time_filter = request.query_params.get('time_filter', 'all')
         offset = request.query_params.get('offset', 0)
 
-        offset = self.__validate_query_params(sort, time_filter, offset)
+        offset = self._validate_query_params(sort, time_filter, offset)
         logger.info(f'Sort type: {sort}')
         logger.info(f'Time filter: {time_filter}')
         logger.info(f'offset: {offset}')
@@ -383,7 +383,7 @@ class SubredditSubmitSubmission(APIView):
 
     def post(self, request, name, Format=None):
         logger.info('-' * 100)
-        logger.info('New subreddit submit post request...')
+        logger.info(f'Subreddit "{name}" post submission =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -491,4 +491,7 @@ class SubredditSubmitSubmission(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg, 'submission': submission_data}, status=status_code)
+        return Response(
+            {'detail': msg, 'submission': submission_data}, status=status_code
+        )
+

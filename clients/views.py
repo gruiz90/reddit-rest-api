@@ -5,17 +5,16 @@ import hmac
 import hashlib
 import base64
 
-from rest_framework.views import APIView
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.views.generic.base import RedirectView
-
+from django.core.cache import cache
+from django.utils.timezone import now
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
-from django.core.cache import cache
-from django.utils.timezone import now
 
 from .models import SalesforceOrg, ClientOrg, Token
 from .serializers import (
@@ -25,24 +24,33 @@ from .serializers import (
 )
 from redditors.models import Redditor
 from redditors.serializers import RedditorSerializer
+from redditors.utils import RedditorsUtils
 from api.permissions import MyOauthConfirmPermission
 from api.token_authentication import MyTokenAuthentication
 from subreddits.utils import SubredditsUtils
-from redditors.utils import RedditorsUtils
-
 from api.utils import Utils
 
 logger = Utils.init_logger(__name__)
 
 
-class ClientOauthView(APIView):
+class ClientsInfo(APIView):
+    # TODO get all clients info from database, this is only permitted for session auth.
+
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, Format=None):
+        pass
+
+
+class ClientOauth(APIView):
     """
-	API endpoint that initiates the Reddit Account oauth flow
-	"""
+    API endpoint that initiates the Reddit Account oauth flow
+    """
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('Reddit New OAuth request...')
+        logger.info('Reddit Oauth request =>')
 
         # Create a valid state integer and save it to cache
         state = Utils.save_valid_state_in_cache('oauth')
@@ -59,14 +67,14 @@ class ClientOauthView(APIView):
         )
 
 
-class ClientOauthCallbackView(APIView):
+class ClientOauthCallback(APIView):
     """
-	API endpoint that handles the callback from Reddit Oauth flow
-	"""
+    API endpoint that handles the callback from Reddit Oauth flow
+    """
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('Reddit Oauth callback...')
+        logger.info('Reddit Oauth callback =>')
 
         error_msg = None
         status_code = 200
@@ -99,8 +107,6 @@ class ClientOauthCallbackView(APIView):
                         900,
                     )
                     logger.info('Reddit oauth code saved in cache succesfully!')
-                    # Return a response with 200:OK here...
-                    # return Response({'detail': 'Oauth code saved successfully.'}, status=status.HTTP_200_OK)
 
         # Update cache oauth_state with error msg
         if error_msg:
@@ -112,19 +118,24 @@ class ClientOauthCallbackView(APIView):
             )
         # Redirect to generic Salesforce login domain
         return redirect('https://login.salesforce.com/')
+        # return HttpResponse('''<script type="text/javascript">
+        #                         var myWindow = window.open("", "_self");
+        #                         myWindow.document.write("");
+        #                         setTimeout (function() {myWindow.close();},1000);
+        #                     </script>''')
 
 
-class ClientOauthConfirmationView(APIView):
+class ClientOauthConfirmation(APIView):
     """
-	API endpoint to check oauth status for a Salesforce Org (GET) 
-	and handle the confirmation of a Reddit account for some Salesforce org (POST)
-	"""
+    API endpoint to check oauth status for a Salesforce Org (GET) 
+    and handle the confirmation of a Reddit account for some Salesforce org (POST)
+    """
 
     permission_classes = [MyOauthConfirmPermission]
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('Reddit Oauth status ping...')
+        logger.info('Reddit Oauth status =>')
 
         state = request.query_params.get('state')
         # Get oauth_data from cache using state
@@ -153,14 +164,14 @@ class ClientOauthConfirmationView(APIView):
 
     def post(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('Reddit Oauth confirmation post...')
+        logger.info('Reddit Oauth confirmation =>')
 
         # First validated request.data and save the SalesforceOrg object
         org = SalesforceOrg.objects.get_or_none(org_id=request.data.get('org_id'))
         serializer = SalesforceOrgSerializer(instance=org, data=request.data)
         serializer.is_valid(raise_exception=True)
         org = serializer.save()
-        logger.debug(f'Org data -> {org}')
+        logger.debug(f'Org data => {org}')
 
         state = request.query_params.get('state')
         # Get refresh token from cache
@@ -223,19 +234,19 @@ class ClientOauthConfirmationView(APIView):
         return Response(redditor_data, status=status.HTTP_201_CREATED)
 
 
-class ClientView(APIView):
+class ClientInfo(APIView):
     """
-	API endpoint to get authenticated Reddit account info.
-	GET request returns the redditor data.
-	Expects a valid bearer token in the Authorization header.
-	"""
+    API endpoint to get authenticated Reddit account info.
+    GET request returns the redditor data.
+    Expects a valid bearer token in the Authorization header.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('Get redditor data for authenticated reddit account...')
+        logger.info('Client information request =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -263,18 +274,18 @@ class ClientView(APIView):
         return Response(data=redditor_data, status=status.HTTP_200_OK)
 
 
-class ClientDisconnectView(APIView):
+class ClientDisconnect(APIView):
     """
-	API endpoint to disconnect a Salesforce Org Client. DELETE request that deletes oauth token and 
-	changes the Client Org to inactive status.
-	"""
+    API endpoint to disconnect a Salesforce Org Client. DELETE request that deletes oauth token and 
+    changes the Client Org to inactive status.
+    """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('Reddit Account disconnect...')
+        logger.info('Client Reddit Account disconnect =>')
 
         # If the request is authenticated correctly by the bearer token then I can get
         # the client_org from the request.user. Return tuple from TokenAuthentication:
@@ -297,14 +308,10 @@ class ClientDisconnectView(APIView):
         )
 
 
-class ClientsView(APIView):
-    pass
-
-
-class SalesforceOauthView(APIView):
+class SalesforceOauth(APIView):
     """
-	API endpoint that initiates a Salesforce org OAuth using the connected app credentials.
-	"""
+    API endpoint that initiates a Salesforce org OAuth using the connected app credentials.
+    """
 
     # This endpoint is only usable for orgs that already
     # have a bearer token from the reddit oauth flow
@@ -318,7 +325,7 @@ class SalesforceOauthView(APIView):
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('New Salesforce OAuth request...')
+        logger.info('Client Salesforce OAuth request =>')
 
         # Get the org_id from the request, I need to save it in cache because the callback
         # cannnot have a Bearer token Authorization header
@@ -343,10 +350,10 @@ class SalesforceOauthView(APIView):
         )
 
 
-class SalesforceOauthCallbackView(APIView):
+class SalesforceOauthCallback(APIView):
     """
-	API endpoint to handle the callback from Salesforce oauth flow
-	"""
+    API endpoint to handle the callback from Salesforce oauth flow
+    """
 
     endpoint_url = 'https://login.salesforce.com/services/oauth2/token'
     redirect_uri = f'{os.environ.get("DOMAIN_URL")}/clients/salesforce_oauth_callback'
@@ -357,7 +364,7 @@ class SalesforceOauthCallbackView(APIView):
 
     def get(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('New Salesforce OAuth callback request...')
+        logger.info('Client Salesforce OAuth callback =>')
 
         error_msg = None
         status_code = 200
@@ -486,11 +493,11 @@ class SalesforceOauthCallbackView(APIView):
         return response_json['signature'] == generated_signature
 
 
-class SalesforceTokenView(APIView):
+class SalesforceToken(APIView):
     """
-	API endpoint that recieves an access token and instance url of a Salesforce org to connect
-	this app with the org from the url. The access token is the one generated with sfdx.
-	"""
+    API endpoint that recieves an access token and instance url of a Salesforce org to connect
+    this app with the org from the url. The access token is the one generated with sfdx.
+    """
 
     # This endpoint is only usable for orgs that already
     # have a bearer token from the reddit oauth flow
@@ -499,7 +506,7 @@ class SalesforceTokenView(APIView):
 
     def post(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('New Salesforce Token request...')
+        logger.info('Client Salesforce Token request =>')
 
         # Check if the data passed is acceptable with the custom serializer
         serializer = SalesforceTokenDataSerializer(data=request.data)
@@ -523,7 +530,7 @@ class SalesforceTokenView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         org = serializer.save()
-        logger.debug(f'Org data -> {org}')
+        logger.debug(f'Org data => {org}')
 
         return Response(
             data={
@@ -533,11 +540,11 @@ class SalesforceTokenView(APIView):
         )
 
 
-class SalesforceRevokeAccessView(APIView):
+class SalesforceRevokeAccess(APIView):
     """
-	API endpoint that revokes the oauth access token for a Salesforce org according to the 
-	Authorization bearer token.
-	"""
+    API endpoint that revokes the oauth access token for a Salesforce org according to the 
+    Authorization bearer token.
+    """
 
     # This endpoint is only usable for orgs that already
     # have a bearer token from the reddit oauth flow
@@ -548,7 +555,7 @@ class SalesforceRevokeAccessView(APIView):
 
     def delete(self, request, Format=None):
         logger.info('-' * 100)
-        logger.info('New Salesforce revoke token request...')
+        logger.info('Client Salesforce revoke token =>')
 
         org_id = request.user.salesforce_org_id
         org = SalesforceOrg.objects.get_or_none(org_id=org_id)
@@ -588,4 +595,3 @@ class SalesforceRevokeAccessView(APIView):
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'token': refresh_token}
         return requests.post(self.endpoint_url, headers=headers, data=payload)
-

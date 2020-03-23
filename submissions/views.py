@@ -26,7 +26,7 @@ class SubmissionInfo(APIView):
 
     def get(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New submission details request...')
+        logger.info(f'Submission "{id}" info request =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -43,7 +43,7 @@ class SubmissionInfo(APIView):
 
     def delete(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New submission delete request...')
+        logger.info(f'Submission "{id}" delete =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -118,7 +118,7 @@ class SubmissionVote(APIView):
 
     def post(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New submission vote request...')
+        logger.info(f'Submission "{id}" vote =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -164,7 +164,7 @@ class SubmissionReply(APIView):
 
     def post(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New submission reply request...')
+        logger.info(f'Submission "{id}" reply =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -214,7 +214,7 @@ class SubmissionCrosspost(APIView):
 
     def post(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New submission reply request...')
+        logger.info(f'Submission "{id}" crosspost =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -277,7 +277,9 @@ class SubmissionCrosspost(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg, 'submission': crosspost_data}, status=status_code)
+        return Response(
+            {'detail': msg, 'submission': crosspost_data}, status=status_code
+        )
 
 
 class SubmissionComments(APIView):
@@ -295,7 +297,7 @@ class SubmissionComments(APIView):
 
     _sortings = ['best', 'top', 'new', 'controversial', 'old', 'q_a']
 
-    def __validate_query_params(self, sort, flat, limit, offset):
+    def _validate_query_params(self, sort, flat, limit, offset):
         if sort not in self._sortings:
             raise exceptions.ParseError(detail={'detail': f'Sort type {sort} invalid.'})
         elif sort == 'q_a':
@@ -348,7 +350,7 @@ class SubmissionComments(APIView):
 
     def get(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New submission get comments request...')
+        logger.info(f'Submission "{id}" comments =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -364,7 +366,7 @@ class SubmissionComments(APIView):
         limit = request.query_params.get('limit', 10)
         offset = request.query_params.get('offset', 0)
 
-        sort, limit, offset = self.__validate_query_params(sort, flat, limit, offset)
+        sort, limit, offset = self._validate_query_params(sort, flat, limit, offset)
         logger.info(f'Sort type: {sort}')
         logger.info(f'Limit: {limit}')
         logger.info(f'Offset: {offset}')

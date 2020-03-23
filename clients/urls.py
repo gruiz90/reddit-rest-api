@@ -4,32 +4,24 @@ import clients.views as views
 app_name = 'clients'
 
 urlpatterns = [
-    path('', views.ClientsView.as_view()),
-    path('oauth', views.ClientOauthView.as_view(), name='oauth'),
+    path('', views.ClientsInfo.as_view(), name='all_clients'),
+    path('oauth', views.ClientOauth.as_view(), name='oauth'),
+    path('oauth_callback', views.ClientOauthCallback.as_view(), name='oauth_callback'),
     path(
-        'oauth_callback', views.ClientOauthCallbackView.as_view(), name='oauth_callback'
+        'oauth_confirm', views.ClientOauthConfirmation.as_view(), name='oauth_confirm',
     ),
-    path(
-        'oauth_confirm',
-        views.ClientOauthConfirmationView.as_view(),
-        name='oauth_confirm',
-    ),
-    path('disconnect', views.ClientDisconnectView.as_view(), name='disconnect'),
-    path('me', views.ClientView.as_view(), name='me'),
-    path(
-        'salesforce_oauth', views.SalesforceOauthView.as_view(), name='salesforce_oauth'
-    ),
+    path('disconnect', views.ClientDisconnect.as_view(), name='disconnect'),
+    path('me', views.ClientInfo.as_view(), name='me'),
+    path('salesforce_oauth', views.SalesforceOauth.as_view(), name='salesforce_oauth'),
     path(
         'salesforce_oauth_callback',
-        views.SalesforceOauthCallbackView.as_view(),
+        views.SalesforceOauthCallback.as_view(),
         name='salesforce_oauth_callback',
     ),
-    path(
-        'salesforce_token', views.SalesforceTokenView.as_view(), name='salesforce_token'
-    ),
+    path('salesforce_token', views.SalesforceToken.as_view(), name='salesforce_token'),
     path(
         'salesforce_token_revoke',
-        views.SalesforceRevokeAccessView.as_view(),
+        views.SalesforceRevokeAccess.as_view(),
         name='salesforce_token_revoke',
     ),
 ]

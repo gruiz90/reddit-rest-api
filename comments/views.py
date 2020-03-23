@@ -6,17 +6,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from prawcore.exceptions import Forbidden
 
-from api.token_authentication import MyTokenAuthentication
 from .utils import CommentsUtils
 from clients.utils import ClientsUtils
+from api.token_authentication import MyTokenAuthentication
 from api.utils import Utils
 
 logger = Utils.init_logger(__name__)
 
 
-class CommentView(APIView):
+class CommentInfo(APIView):
     """
-    API endpoint to get/delete a reddit comment by the id provided
+    API endpoint to get/update/delete a reddit comment by the id provided
     """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
@@ -24,7 +24,7 @@ class CommentView(APIView):
 
     def get(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New comment details request...')
+        logger.info(f'Comment "{id}" info request =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -43,7 +43,7 @@ class CommentView(APIView):
 
     def patch(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New comment edit request...')
+        logger.info(f'Comment "{id}" patch =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -68,7 +68,9 @@ class CommentView(APIView):
                 # Try to delete the comment now
                 try:
                     updated_comment = comment.edit(markdown_body)
-                    updated_comment_data = CommentsUtils.get_comment_data(updated_comment)
+                    updated_comment_data = CommentsUtils.get_comment_data(
+                        updated_comment
+                    )
                     msg = f'Comment "{updated_comment.id}" successfully edited.'
                     logger.info(msg)
                 except Exception as ex:
@@ -86,11 +88,13 @@ class CommentView(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg, 'comment': updated_comment_data}, status=status_code)
+        return Response(
+            {'detail': msg, 'comment': updated_comment_data}, status=status_code
+        )
 
     def delete(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New comment delete request...')
+        logger.info(f'Comment "{id}" delete =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -131,7 +135,7 @@ class CommentView(APIView):
         return Response({'detail': msg}, status=status_code)
 
 
-class CommentVoteView(APIView):
+class CommentVote(APIView):
     """
     API endpoint to post a vote for a comment by the id.
     data_json: { "vote_value": -1 | 0 | 1}
@@ -140,7 +144,7 @@ class CommentVoteView(APIView):
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def __validate_vote_value(self, vote):
+    def _validate_vote_value(self, vote):
         if vote is None:
             raise exceptions.ParseError(
                 detail={'detail': f'A vote_value must be provided in the json data.'}
@@ -162,7 +166,7 @@ class CommentVoteView(APIView):
 
     def post(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New comment vote request...')
+        logger.info(f'Comment "{id}" vote =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -173,7 +177,7 @@ class CommentVoteView(APIView):
             )
 
         # Get vote value from data json and check if valid
-        vote_value = self.__validate_vote_value(request.data.get('vote_value'))
+        vote_value = self._validate_vote_value(request.data.get('vote_value'))
 
         if reddit.read_only:
             vote_action = 'dummy'
@@ -196,7 +200,7 @@ class CommentVoteView(APIView):
         )
 
 
-class CommentReplyView(APIView):
+class CommentReply(APIView):
     """
     API endpoint that post a reply to a comment by the id
     Data in json: body - The Markdown formatted content for a comment.
@@ -207,7 +211,7 @@ class CommentReplyView(APIView):
 
     def post(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New comment reply request...')
+        logger.info(f'Comment "{id}" reply =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, client_org = Utils.new_client_request(request.user)
@@ -243,10 +247,12 @@ class CommentReplyView(APIView):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
-        return Response({'detail': msg, 'comment': reply_comment_data}, status=status_code)
+        return Response(
+            {'detail': msg, 'comment': reply_comment_data}, status=status_code
+        )
 
 
-class CommentRepliesView(APIView):
+class CommentReplies(APIView):
     """
     API endpoint to get a comment top level replies. comments/<str:id>/replies
     It returns a max of 20 top level replies per request. Uses offset to get the rest in different request.
@@ -258,7 +264,7 @@ class CommentRepliesView(APIView):
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def __validate_query_params(self, flat, limit, offset):
+    def _validate_query_params(self, flat, limit, offset):
         try:
             flat = bool(flat)
         except ValueError:
@@ -304,7 +310,7 @@ class CommentRepliesView(APIView):
 
     def get(self, request, id, Format=None):
         logger.info('-' * 100)
-        logger.info('New comment get replies request...')
+        logger.info(f'Comment "{id}" replies =>')
 
         # Gets the reddit instance from the user in request (ClientOrg)
         reddit, _ = Utils.new_client_request(request.user)
@@ -319,7 +325,7 @@ class CommentRepliesView(APIView):
         limit = request.query_params.get('limit', 10)
         offset = request.query_params.get('offset', 0)
 
-        limit, offset = self.__validate_query_params(flat, limit, offset)
+        limit, offset = self._validate_query_params(flat, limit, offset)
         logger.info(f'Limit: {limit}')
         logger.info(f'Offset: {offset}')
 
@@ -350,4 +356,3 @@ class CommentRepliesView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
