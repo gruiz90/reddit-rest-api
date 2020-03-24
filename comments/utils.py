@@ -48,7 +48,6 @@ class CommentsUtils(object):
             'has_replies': len(comment.replies) > 0,
             'is_submitter': comment.is_submitter,
             'distinguished': comment.distinguished,
-            'edited': comment.edited,
+            'edited': bool(comment.edited),
             'stickied': comment.stickied,
         }
-

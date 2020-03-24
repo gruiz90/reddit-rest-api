@@ -24,16 +24,21 @@ class RedditorsUtils(object):
 
     @staticmethod
     def get_redditor_data_simple(redditor):
-        if redditor:
-            return {
-                'id': redditor.id,
-                'name': redditor.name,
-                'created_utc': datetime.utcfromtimestamp(redditor.created_utc),
-                'icon_img': redditor.icon_img,
-                'comment_karma': redditor.comment_karma,
-                'link_karma': redditor.link_karma,
-            }
-        else:
+        # I need to try fetch for the redditor data here
+        try:
+            if redditor:
+                redditor._fetch()
+                return {
+                    'id': redditor.id,
+                    'name': redditor.name,
+                    'created_utc': datetime.utcfromtimestamp(redditor.created_utc),
+                    'icon_img': redditor.icon_img,
+                    'comment_karma': redditor.comment_karma,
+                    'link_karma': redditor.link_karma,
+                }
+            else:
+                return None
+        except:
             return None
 
     @staticmethod
@@ -72,4 +77,3 @@ class RedditorsUtils(object):
             'is_mod': False,
             'is_gold': False,
         }
-
