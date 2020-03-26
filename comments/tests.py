@@ -99,10 +99,8 @@ class CommentsTests(APITestCase):
         response = self.client.post(url, data={'vote_value': 0})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data,
-            {
-                'detail': f'Vote action \'dummy\' successful for comment with id: {comment_id}!'
-            },
+            response.data['detail'],
+            f'Vote action \'dummy\' successful for comment with id: {comment_id}.',
         )
 
     def test_comment_reply(self):

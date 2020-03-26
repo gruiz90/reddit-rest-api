@@ -158,12 +158,12 @@ class CommentVote(APIView):
             if not vote in [-1, 0, 1]:
                 raise exceptions.ParseError(
                     detail={
-                        'detail': f'Vote value {vote} outside allowed range (-1<=vote<=1).'
+                        'detail': f'Vote value \'{vote}\' outside allowed range (-1<=vote<=1).'
                     }
                 )
         except ValueError:
             raise exceptions.ParseError(
-                detail={'detail': f'The vote value must be a -1, 0 or 1.'}
+                detail={'detail': f'The vote value must be an integer: -1 | 0 | 1.'}
             )
 
         return vote
@@ -182,7 +182,6 @@ class CommentVote(APIView):
 
         # Get vote value from data json and check if valid
         vote_value = self._validate_vote_value(request.data.get('vote_value'))
-
         if reddit.read_only:
             vote_action = 'dummy'
         else:
@@ -196,9 +195,11 @@ class CommentVote(APIView):
                 vote_action = 'Upvote'
                 comment.upvote()
 
+        comment_data = CommentsUtils.get_comment_data_simple(comment)
         return Response(
             {
-                'detail': f'Vote action \'{vote_action}\' successful for comment with id: {id}!'
+                'detail': f'Vote action \'{vote_action}\' successful for comment with id: {id}.',
+                'comment': comment_data,
             },
             status=status.HTTP_200_OK,
         )
@@ -282,9 +283,7 @@ class CommentReplies(APIView):
             flat = bool(flat)
         except ValueError:
             raise exceptions.ParseError(
-                detail={
-                    'detail': f'flat parameter must be a boolean like \'True\' or \'False\'.'
-                }
+                detail={'detail': f'flat parameter must be a boolean: true | false.'}
             )
 
         try:

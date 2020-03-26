@@ -22,8 +22,8 @@ class Subreddit(models.Model):
         blank=True,
         help_text=(
             'Description of the subreddit, '
-            'shown in searches and on the'
-            '"You must be invited to visit this community"'
+            'shown in searches and on the '
+            '"You must be invited to visit this community" '
             'page(if applicable).'
         ),
     )

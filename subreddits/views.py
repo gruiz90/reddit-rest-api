@@ -46,22 +46,30 @@ class ConnectSubreddit(APIView):
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
             )
 
-        logger.info(f'Connecting to Subreddit {subreddit.name}')
+        logger.info(f'Connecting to Subreddit \'{subreddit.name}\'')
         if not reddit.read_only and not subreddit.user_is_subscriber:
-            logger.info('Client is not subscribed, so I need to subscribe him here..')
-            subreddit.subscribe()
-        logger.info(f'Client subscribed: {subreddit.user_is_subscriber}')
+            logger.info('Client is not subscribed, so I need to subscribe him here...')
+            status_code, msg = SubredditsUtils.subscribe_action(
+                reddit, logger, name, client_org, subreddit
+            )
+            if status_code != status.HTTP_200_OK:
+                return Response({'detail': msg}, status=status_code)
 
         # Get data I need from subreddit instance
         subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
-
-        # Here for now I'll just save the subreddit_data in a Subreddit Model object
+        # TODO: Here for now I'll just save the subreddit_data in a Subreddit Model object
         # But I need to enqueue this into a redis queue, send the data to user as fast as possible
         subreddit_obj = SubredditsUtils.create_or_update(subreddit_data)
         # Add the client_org connection to the object
         subreddit_obj.clients.add(client_org)
 
-        return Response(subreddit_data, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                'detail': 'Client connected subreddit succesfully.',
+                'subreddit': subreddit_data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class DisconnectSubreddit(APIView):
@@ -126,7 +134,7 @@ class SubredditInfo(APIView):
 
         # Get data I need from subreddit instance
         subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
-        # Enqueue this in a redis queue job later
+        # TODO: Enqueue this in a redis queue job later
         SubredditsUtils.create_or_update(subreddit_data)
 
         return Response(subreddit_data, status=status.HTTP_200_OK)
@@ -204,29 +212,19 @@ class SubredditSubscribe(APIView):
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
             )
 
-        status_code = status.HTTP_200_OK
-        if not reddit.read_only:
-            _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-            if not subreddit.user_is_subscriber:
-                try:
-                    subreddit.subscribe()
-                    msg = f'Reddit user u/{redditor_name} succesfully subscribed to r/{name}.'
-                    logger.info(msg)
-                except Exception as ex:
-                    msg = f'Error subscribing u/{redditor_name} to r/{name}. Exception raised: {repr(ex)}.'
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-                    logger.error(msg)
-            else:
-                msg = f'Reddit user u/{redditor_name} already subscribed to r/{name}.'
-                logger.info(msg)
-        else:
-            msg = (
-                f'Reddit instance is read only. Cannot subscribe to subreddit r/{name}.'
-            )
-            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
-            logger.warn(msg)
+        # Get data I need from subreddit instance
+        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
+        # TODO: Here for now I'll just save the subreddit_data in a Subreddit Model object
+        # But I need to enqueue this into a redis queue, send the data to user as fast as possible
+        SubredditsUtils.create_or_update(subreddit_data)
 
-        return Response({'detail': msg}, status=status_code)
+        status_code, msg = SubredditsUtils.subscribe_action(
+            reddit, logger, name, client_org, subreddit
+        )
+
+        return Response(
+            {'detail': msg, 'subreddit': subreddit_data}, status=status_code
+        )
 
 
 class SubredditUnsubscribe(APIView):
@@ -250,29 +248,18 @@ class SubredditUnsubscribe(APIView):
                 detail={'detail': f'No subreddit exists with the name: {name}.'}
             )
 
-        status_code = status.HTTP_200_OK
-        if not reddit.read_only:
-            _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-            if subreddit.user_is_subscriber:
-                try:
-                    subreddit.unsubscribe()
-                    msg = f'Reddit user u/{redditor_name} succesfully unsubscribed from r/{name}.'
-                    logger.info(msg)
-                except Exception as ex:
-                    msg = f'Error unsubscribing u/{redditor_name} from r/{name}. Exception raised: {repr(ex)}.'
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-                    logger.error(msg)
-            else:
-                msg = (
-                    f'Reddit user u/{redditor_name} already unsubscribed from r/{name}.'
-                )
-                logger.info(msg)
-        else:
-            msg = f'Reddit instance is read only. Cannot unsubscribe from subreddit r/{name}.'
-            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
-            logger.warn(msg)
+        # Get data I need from subreddit instance
+        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
+        # TODO: Here for now I'll just save the subreddit_data in a Subreddit Model object
+        # But I need to enqueue this into a redis queue, send the data to user as fast as possible
+        SubredditsUtils.create_or_update(subreddit_data)
 
-        return Response({'detail': msg}, status=status_code)
+        status_code, msg = SubredditsUtils.subscribe_action(
+            reddit, logger, name, client_org, subreddit, subscribe=False
+        )
+        return Response(
+            {'detail': msg, 'subreddit': subreddit_data}, status=status_code
+        )
 
 
 class SubredditSubmissions(APIView):

@@ -29,10 +29,11 @@ class RedditorsInfo(APIView):
         logger.info('-' * 100)
         logger.info('Redditors info request =>')
 
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, _ = Utils.new_client_request(request.user)
         # TODO get all redditors from database, only session auth for this one
         pass
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        # reddit, _ = Utils.new_client_request(request.user)
 
         # subreddits = []
         # if reddit.read_only:
@@ -86,4 +87,3 @@ class RedditorInfo(APIView):
         # RedditorsUtils.create_or_update(redditor_data)
 
         return Response(redditor_data, status=status.HTTP_200_OK)
-

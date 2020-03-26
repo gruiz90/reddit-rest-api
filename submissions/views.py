@@ -32,7 +32,7 @@ class SubmissionInfo(APIView):
         reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
-        if submission is None:
+        if not submission:
             raise exceptions.NotFound(
                 detail={'detail': f'No submission exists with the id: {id}.'}
             )
@@ -49,7 +49,7 @@ class SubmissionInfo(APIView):
         reddit, client_org = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
-        if submission is None:
+        if not submission:
             raise exceptions.NotFound(
                 detail={'detail': f'No submission exists with the id: {id}.'}
             )
@@ -120,12 +120,12 @@ class SubmissionVote(APIView):
             if not vote in [-1, 0, 1]:
                 raise exceptions.ParseError(
                     detail={
-                        'detail': f'Vote value {vote} outside allowed range (-1<=vote<=1).'
+                        'detail': f'Vote value {vote} outside allowed integer range (-1<=vote<=1).'
                     }
                 )
         except ValueError:
             raise exceptions.ParseError(
-                detail={'detail': f'The vote value must be a -1, 0 or 1.'}
+                detail={'detail': f'The vote value must be an integer: -1 | 0 | 1.'}
             )
 
         return vote
@@ -138,14 +138,13 @@ class SubmissionVote(APIView):
         reddit, _ = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
-        if submission is None:
+        if not submission:
             raise exceptions.NotFound(
                 detail={'detail': f'No submission exists with the id: {id}.'}
             )
 
         # Get vote value from data json and check if valid
         vote_value = self._validate_vote_value(request.data.get('vote_value'))
-
         if reddit.read_only:
             vote_action = 'dummy'
         else:
@@ -159,9 +158,11 @@ class SubmissionVote(APIView):
                 vote_action = 'Upvote'
                 submission.upvote()
 
+        submission_data = SubmissionsUtils.get_submission_data_simple(submission)
         return Response(
             {
-                'detail': f'Vote action \'{vote_action}\' successful for submission with id: {id}!'
+                'detail': f'Vote action \'{vote_action}\' successful for submission with id: {id}.',
+                'submission': submission_data,
             },
             status=status.HTTP_200_OK,
         )
@@ -184,7 +185,7 @@ class SubmissionReply(APIView):
         reddit, client_org = Utils.new_client_request(request.user)
         # Get subreddit instance with the name provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
-        if submission is None:
+        if not submission:
             raise exceptions.NotFound(
                 detail={'detail': f'No submission exists with the id: {id}.'}
             )
@@ -343,7 +344,7 @@ class SubmissionComments(APIView):
         except ValueError:
             raise exceptions.ParseError(
                 detail={
-                    'detail': f'flat parameter must be an boolean like \'True\' or \'False\'.'
+                    'detail': f'flat parameter must be a boolean: true | false.'
                 }
             )
 
@@ -391,7 +392,7 @@ class SubmissionComments(APIView):
         reddit, _ = Utils.new_client_request(request.user)
         # Get submission instance with the id provided
         submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
-        if submission is None:
+        if not submission:
             raise exceptions.NotFound(
                 detail={'detail': f'No submission exists with the id: {id}.'}
             )

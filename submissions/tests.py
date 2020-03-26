@@ -78,10 +78,8 @@ class SubmissionsTests(APITestCase):
         response = self.client.post(url, data={'vote_value': 0})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data,
-            {
-                'detail': f'Vote action \'dummy\' successful for submission with id: {submission_id}!'
-            },
+            response.data['detail'],
+            f'Vote action \'dummy\' successful for submission with id: {submission_id}.',
         )
 
     def test_submission_reply(self):

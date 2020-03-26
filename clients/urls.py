@@ -4,7 +4,7 @@ import clients.views as views
 app_name = 'clients'
 
 urlpatterns = [
-    path('', views.ClientsInfo.as_view(), name='all_clients'),
+    # path('', views.ClientsInfo.as_view(), name='all_clients'),
     path('oauth', views.ClientOauth.as_view(), name='oauth'),
     path('oauth_callback', views.ClientOauthCallback.as_view(), name='oauth_callback'),
     path(

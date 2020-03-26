@@ -90,16 +90,14 @@ class SubredditsTests(APITestCase):
             response.data['sort_type'] == 'top' and response.data['offset'] == offset
         )
 
-    def _subscribe_unsubscribe_request(self, action, action_msg):
+    def _subscribe_unsubscribe_request(self, action='subscribe'):
         url = reverse(f'subreddits:subreddit_{action}', args=['test'])
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         action_string = 'subscribe to' if action == 'subscribe' else 'unsubscribe from'
         self.assertEqual(
-            response.data,
-            {
-                'detail': f'Reddit instance is read only. Cannot {action_string} subreddit r/test.'
-            },
+            response.data['detail'],
+            f'Reddit instance is read only. Cannot {action_string} subreddit r/test.',
         )
 
     def test_subreddit_subscribe_unsubscribe(self):
@@ -112,8 +110,8 @@ class SubredditsTests(APITestCase):
         self._dummy_subreddit_request('subreddits:subreddit_unsubscribe', post=True)
 
         # Now try with a real subreddit name
-        self._subscribe_unsubscribe_request('subscribe', 'subscribed to')
-        self._subscribe_unsubscribe_request('unsubscribe', 'unsubscribed from')
+        self._subscribe_unsubscribe_request()
+        self._subscribe_unsubscribe_request(action='unsubscribe')
 
     def test_subreddit_submmit_submission(self):
         """
@@ -136,6 +134,5 @@ class SubredditsTests(APITestCase):
         response = self.client.post(url, data={'title': 'test', 'selftext': 'test'})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertTrue(
-            'Cannot submit a post creation in r/test.'
-            in response.data['detail']
+            'Cannot submit a post creation in r/test.' in response.data['detail']
         )

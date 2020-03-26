@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from .models import Subreddit
 from .serializers import SubredditSerializer
+from clients.utils import ClientsUtils
 from datetime import datetime
+from rest_framework import status, exceptions
 
 
 class SubredditsUtils(object):
@@ -42,6 +44,42 @@ class SubredditsUtils(object):
         return None
 
     @staticmethod
+    def subscribe_action(reddit, logger, name, client_org, subreddit, subscribe=True):
+        status_code, msg = status.HTTP_200_OK, None
+        if not reddit.read_only:
+            _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+            if not subreddit.user_is_subscriber:
+                try:
+                    subreddit.subscribe() if subscribe else subreddit.unsubscribe()
+                    msg = (
+                        f'Reddit user u/{redditor_name} succesfully '
+                        f'{"subscribed to" if subscribe else "unsubscribed from"} r/{name}.'
+                    )
+                    logger.info(msg)
+                except Exception as ex:
+                    msg = (
+                        f'Error {"subscribing" if subscribe else "unsubscribing"} '
+                        f'u/{redditor_name} {"to" if subscribe else "from"} r/{name}. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                    logger.error(msg)
+            else:
+                msg = (
+                    f'Reddit user u/{redditor_name} already '
+                    f'{"subscribed to" if subscribe else "unsubscribed from"} r/{name}.'
+                )
+                logger.info(msg)
+        else:
+            msg = (
+                f'Reddit instance is read only. Cannot '
+                f'{"subscribe to" if subscribe else "unsubscribe from"} subreddit r/{name}.'
+            )
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+        return status_code, msg
+
+    @staticmethod
     def get_subreddit_data(subreddit):
         return {
             'id': subreddit.id,
@@ -68,4 +106,3 @@ class SubredditsUtils(object):
             'created_utc': datetime.utcfromtimestamp(subreddit.created_utc),
             'subscribers': subreddit.subscribers,
         }
-
