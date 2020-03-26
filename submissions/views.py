@@ -59,23 +59,37 @@ class SubmissionInfo(APIView):
             # Only can delete the submission if author is the same as the reddit instance
             # So check for submission redditor and reddit redditor
             submission_redditor = submission.author
-            redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-
-            if submission_redditor.id == redditor_id:
-                # Try to delete the submission now
-                try:
-                    submission.delete()
-                    msg = f'Submission "{id}" successfully deleted.'
+            if submission_redditor:
+                redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(
+                    client_org
+                )
+                if submission_redditor.id == redditor_id:
+                    # Try to delete the submission now
+                    try:
+                        submission.delete()
+                        msg = f'Submission \'{id}\' successfully deleted.'
+                        logger.info(msg)
+                    except Exception as ex:
+                        msg = (
+                            f'Error deleting submission. Exception raised: {repr(ex)}.'
+                        )
+                        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                        logger.error(msg)
+                else:
+                    msg = (
+                        f'Cannot delete the submission with id: {id}. '
+                        f'The authenticated reddit user u/{redditor_name} '
+                        f'needs to be the same as the submission\'s author u/{submission_redditor.name}'
+                    )
+                    status_code = status.HTTP_403_FORBIDDEN
                     logger.info(msg)
-                except Exception as ex:
-                    msg = f'Error deleting submission. Exception raised: {repr(ex)}.'
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-                    logger.error(msg)
             else:
-                msg = f'Cannot delete the submission "{id}". \
-                    The authenticated reddit user {redditor_name} \
-                        needs to be the same as the submission\'s author: {submission_redditor.name}'
-                status_code = status.HTTP_403_FORBIDDEN
+                msg = (
+                    f'Cannot delete the submission with id: {id}. '
+                    'The submission was already deleted or there is no '
+                    'way to verify the author at this moment.'
+                )
+                status_code = status.HTTP_404_NOT_FOUND
                 logger.info(msg)
         else:
             msg = (
@@ -186,14 +200,23 @@ class SubmissionReply(APIView):
                 comment = submission.reply(markdown_body)
                 comment_data = CommentsUtils.get_comment_data(comment)
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-                msg = f'New comment posted by u/{redditor_name} with id "{comment.id}" to submission "{id}"'
+                msg = (
+                    f'New comment posted by u/{redditor_name} with id \'{comment.id}\' '
+                    f'to submission with id: {id}'
+                )
                 logger.info(msg)
             except Exception as ex:
                 if isinstance(ex, Forbidden):
-                    msg = f'Cannot create a comment in submission "{id}". Forbidden exception: {repr(ex)}'
+                    msg = (
+                        f'Cannot create a comment in submission with id: {id}. '
+                        f'Forbidden exception: {repr(ex)}'
+                    )
                     status_code = status.HTTP_403_FORBIDDEN
                 else:
-                    msg = f'Error creating comment in submission "{id}". Exception raised: {repr(ex)}.'
+                    msg = (
+                        f'Error creating comment in submission with id: {id}. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
                     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
                 logger.error(msg)
         else:
@@ -231,7 +254,10 @@ class SubmissionCrosspost(APIView):
         if not subreddit_name:
             raise exceptions.ParseError(
                 detail={
-                    'detail': 'A subreddit value corresponding to an existent subreddit name must be provided in the json data.'
+                    'detail': (
+                        'A subreddit value corresponding to an existent '
+                        'subreddit name must be provided in the json data.'
+                    )
                 }
             )
         else:
@@ -262,14 +288,23 @@ class SubmissionCrosspost(APIView):
                 )
                 crosspost_data = SubmissionsUtils.get_submission_data(crosspost)
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-                msg = f'New crosspost submission created in r/{subreddit_name} by u/{redditor_name} with id: {crosspost.id}.'
+                msg = (
+                    f'New crosspost submission created in r/{subreddit_name} '
+                    f'by u/{redditor_name} with id: {crosspost.id}.'
+                )
                 logger.info(msg)
             except Exception as ex:
                 if isinstance(ex, Forbidden):
-                    msg = f'Cannot create the crosspost submission "{id}". Forbidden exception: {repr(ex)}'
+                    msg = (
+                        f'Cannot create the crosspost submission with id: {id}. '
+                        f'Forbidden exception: {repr(ex)}'
+                    )
                     status_code = status.HTTP_403_FORBIDDEN
                 else:
-                    msg = f'Error creating crosspost submission "{id}". Exception raised: {repr(ex)}.'
+                    msg = (
+                        f'Error creating crosspost submission with id: {id}. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
                     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
                 logger.error(msg)
         else:
@@ -396,4 +431,3 @@ class SubmissionComments(APIView):
             },
             status=status.HTTP_200_OK,
         )
-

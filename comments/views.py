@@ -71,16 +71,18 @@ class CommentInfo(APIView):
                     updated_comment_data = CommentsUtils.get_comment_data(
                         updated_comment
                     )
-                    msg = f'Comment "{updated_comment.id}" successfully edited.'
+                    msg = f'Comment \'{updated_comment.id}\' successfully edited.'
                     logger.info(msg)
                 except Exception as ex:
                     msg = f'Error edit comment. Exception raised: {repr(ex)}.'
                     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
                     logger.error(msg)
             else:
-                msg = f'Cannot edit the comment "{id}". \
-                    The authenticated reddit user {redditor_name} \
-                        needs to be the same as the comment\'s author: {comment_redditor.name}'
+                msg = (
+                    f'Cannot edit the comment with id: {id}. '
+                    f'The authenticated reddit user u/{redditor_name} '
+                    f'needs to be the same as the comment\'s author u/{comment_redditor.name}'
+                )
                 status_code = status.HTTP_403_FORBIDDEN
                 logger.info(msg)
         else:
@@ -115,16 +117,18 @@ class CommentInfo(APIView):
                 # Try to delete the comment now
                 try:
                     comment.delete()
-                    msg = f'Comment "{id}" successfully deleted.'
+                    msg = f'Comment \'{id}\' successfully deleted.'
                     logger.info(msg)
                 except Exception as ex:
                     msg = f'Error deleting comment. Exception raised: {repr(ex)}.'
                     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
                     logger.error(msg)
             else:
-                msg = f'Cannot delete the comment "{id}". \
-                    The authenticated reddit user {redditor_name} \
-                        needs to be the same as the comment\'s author: {comment_redditor.name}'
+                msg = (
+                    f'Cannot delete the comment with id: {id}. '
+                    f'The authenticated reddit user u/{redditor_name} '
+                    f'needs to be the same as the comment\'s author u/{comment_redditor.name}'
+                )
                 status_code = status.HTTP_403_FORBIDDEN
                 logger.info(msg)
         else:
@@ -232,14 +236,23 @@ class CommentReply(APIView):
                 reply_comment = comment.reply(markdown_body)
                 reply_comment_data = CommentsUtils.get_comment_data(reply_comment)
                 _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-                msg = f'New reply posted by u/{redditor_name} with id "{reply_comment.id}" to comment "{id}"'
+                msg = (
+                    f'New reply posted by u/{redditor_name} with '
+                    f'id \'{reply_comment.id}\' to comment with id: {id}'
+                )
                 logger.info(msg)
             except Exception as ex:
                 if isinstance(ex, Forbidden):
-                    msg = f'Cannot create a reply to comment "{id}". Forbidden exception: {repr(ex)}'
+                    msg = (
+                        f'Cannot create reply to comment with id: {id}. '
+                        f'Forbidden exception: {repr(ex)}'
+                    )
                     status_code = status.HTTP_403_FORBIDDEN
                 else:
-                    msg = f'Error creating reply to comment "{id}". Exception raised: {repr(ex)}.'
+                    msg = (
+                        f'Error creating reply to comment with id: {id}. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
                     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
                 logger.error(msg)
         else:

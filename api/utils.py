@@ -23,7 +23,8 @@ def custom_json_exception_handler(exc, context):
         data = {'error': {'code': response.status_code}}
         errors = []
         for field, value in response.data.items():
-            errors.append(f'{field}: {value}')
+            value_str = str(value).replace('"', "'")
+            errors.append(f'{field}: {value_str}')
         data['error']['messages'] = errors
         response.data = data
     return response

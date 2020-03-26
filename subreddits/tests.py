@@ -136,6 +136,6 @@ class SubredditsTests(APITestCase):
         response = self.client.post(url, data={'title': 'test', 'selftext': 'test'})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertTrue(
-            'Cannot submit a post creation in the subreddit test.'
+            'Cannot submit a post creation in r/test.'
             in response.data['detail']
         )

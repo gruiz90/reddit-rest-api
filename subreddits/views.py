@@ -414,7 +414,10 @@ class SubredditSubmitSubmission(APIView):
                 else:
                     raise exceptions.ParseError(
                         detail={
-                            'detail': 'Either a selftext, url, image_path or video_path must be provided in the json data.'
+                            'detail': (
+                                'Either a selftext, url, image_path or video_path '
+                                'must be provided in the json data.'
+                            )
                         }
                     )
 
@@ -487,11 +490,10 @@ class SubredditSubmitSubmission(APIView):
                 status_code = status.HTTP_503_SERVICE_UNAVAILABLE
                 logger.error(msg)
         else:
-            msg = f'Reddit instance is read only. Cannot submit a post creation in the subreddit {name}.'
+            msg = f'Reddit instance is read only. Cannot submit a post creation in r/{name}.'
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
 
         return Response(
             {'detail': msg, 'submission': submission_data}, status=status_code
         )
-
