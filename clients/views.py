@@ -117,7 +117,10 @@ class ClientOauthCallback(APIView):
                 900,
             )
         # Redirect to generic Salesforce login domain
-        return redirect('https://login.salesforce.com/')
+        return HttpResponse('''<script type="text/javascript">
+                                window.close();
+                               </script>''')
+        # return redirect('https://login.salesforce.com/')
         # return HttpResponse('''<script type="text/javascript">
         #                         var myWindow = window.open("", "_self");
         #                         myWindow.document.write("");
