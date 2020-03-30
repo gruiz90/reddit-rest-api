@@ -58,8 +58,18 @@ class ClientOauth(APIView):
 
         # Obtain authorization URL
         reddit = reddit = Utils.get_reddit_instance()
-        # scopes = ['identity', 'mysubreddits', 'read', 'subscribe', 'vote']
-        auth_url = reddit.auth.url(['*'], state, 'permanent')
+        # scopes = ['*'] All OAuth scopes available
+        scopes = [
+            'edit',
+            'history',
+            'identity',
+            'mysubreddits',
+            'read',
+            'submit',
+            'subscribe',
+            'vote',
+        ]
+        auth_url = reddit.auth.url(scopes, state)
         logger.debug(f'Reddit auth url: {auth_url}')
 
         return Response(
@@ -117,9 +127,11 @@ class ClientOauthCallback(APIView):
                 900,
             )
         # Redirect to generic Salesforce login domain
-        return HttpResponse('''<script type="text/javascript">
-                                window.close();
-                               </script>''')
+        return HttpResponse(
+            ''' <script type="text/javascript">
+                    window.close();
+                </script>'''
+        )
         # return redirect('https://login.salesforce.com/')
         # return HttpResponse('''<script type="text/javascript">
         #                         var myWindow = window.open("", "_self");
