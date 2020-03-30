@@ -29,7 +29,7 @@ class ClientsOauthTests(APITestCase):
 		"""
         url = reverse('clients:oauth_callback')
         response = self.client.get(url, {'state': self.state, 'code': 'dummy'})
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def _oauth_confirm_pending(self):
         """
