@@ -32,7 +32,7 @@ def custom_json_exception_handler(exc, context):
     return response
 
 
-TESTING_MODE = os.environ.get('DEBUG', False)
+TESTING_MODE = os.environ.get('LOGLEVEL_DEBUG', False) == 'True'
 
 
 class Utils(object):
