@@ -22,6 +22,7 @@ from .serializers import (
     ClientOrgSerializer,
     SalesforceTokenDataSerializer,
 )
+from .utils import ClientsUtils
 from redditors.models import Redditor
 from redditors.serializers import RedditorSerializer
 from redditors.utils import RedditorsUtils
@@ -132,12 +133,6 @@ class ClientOauthCallback(APIView):
                     window.close();
                 </script>'''
         )
-        # return redirect('https://login.salesforce.com/')
-        # return HttpResponse('''<script type="text/javascript">
-        #                         var myWindow = window.open("", "_self");
-        #                         myWindow.document.write("");
-        #                         setTimeout (function() {myWindow.close();},1000);
-        #                     </script>''')
 
 
 class ClientOauthConfirmation(APIView):
@@ -253,6 +248,7 @@ class ClientInfo(APIView):
     """
     API endpoint to get authenticated Reddit account info.
     GET request returns the redditor data.
+    DELETE request revokes reddit authorization and deletes oauth token from database
     Expects a valid bearer token in the Authorization header.
     """
 
@@ -288,24 +284,32 @@ class ClientInfo(APIView):
         redditor_data.update(subscriptions=subreddits)
         return Response(data=redditor_data, status=status.HTTP_200_OK)
 
-
-class ClientDisconnect(APIView):
-    """
-    API endpoint to disconnect a Salesforce Org Client. DELETE request that deletes oauth token and 
-    changes the Client Org to inactive status.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def delete(self, request, Format=None):
+        """
+        Method to disconnect a Salesforce Org Client. Revokes access token from Reddit and
+        deletes oauth token in database changing the Client Org to inactive status in the process
+        """
         logger.info('-' * 100)
-        logger.info('Client Reddit Account disconnect =>')
+        logger.info('Client Reddit access token revoke =>')
 
         # If the request is authenticated correctly by the bearer token then I can get
         # the client_org from the request.user. Return tuple from TokenAuthentication:
         # (request.user, request.auth) = (client_org, bearer_token)
-        client_org = request.user
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        try:
+            reddit._core._authorizer.revoke()
+            logger.info('Reddit access token revoked succesfully.')
+        except Exception as ex:
+            logger.error(f'Error revoking access. Exception raised: {repr(ex)}.')
+
+        # Now I need to delete the oauth_token from database and change the status to inactive
+        _, salesforce_org_name = ClientsUtils.get_salesforce_org_id_name(client_org)
+        logger.info(
+            f'Deleting Reddit access token for org \'{salesforce_org_name}\' '
+            'and changing status to inactive for client.'
+        )
         serializer = ClientOrgSerializer(
             instance=client_org,
             data={'disconnected_at': now(), 'reddit_token': None, 'is_active': False},
@@ -510,16 +514,20 @@ class SalesforceOauthCallback(APIView):
 
 class SalesforceToken(APIView):
     """
-    API endpoint that recieves an access token and instance url of a Salesforce org to connect
-    this app with the org from the url. The access token is the one generated with sfdx.
+    API endpoints to receive and revoke Salesforce access tokens
     """
 
-    # This endpoint is only usable for orgs that already
+    # This endpoints are only usable for orgs that already
     # have a bearer token from the reddit oauth flow
     authentication_classes = [MyTokenAuthentication]
     permission_classes = [IsAuthenticated]
+    revoke_endpoint_url = 'https://login.salesforce.com/services/oauth2/revoke'
 
     def post(self, request, Format=None):
+        """
+        API endpoint that recieves an access token and instance url of a Salesforce org to connect
+        this app with the org from the url. The access token is the one generated with sfdx.
+        """
         logger.info('-' * 100)
         logger.info('Client Salesforce Token request =>')
 
@@ -554,21 +562,11 @@ class SalesforceToken(APIView):
             status=status.HTTP_201_CREATED,
         )
 
-
-class SalesforceRevokeAccess(APIView):
-    """
-    API endpoint that revokes the oauth access token for a Salesforce org according to the 
-    Authorization bearer token.
-    """
-
-    # This endpoint is only usable for orgs that already
-    # have a bearer token from the reddit oauth flow
-    authentication_classes = [MyTokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    endpoint_url = 'https://login.salesforce.com/services/oauth2/revoke'
-
     def delete(self, request, Format=None):
+        """
+        API endpoint that revokes the oauth access token for a Salesforce org according to the
+        Authorization bearer token.
+        """
         logger.info('-' * 100)
         logger.info('Client Salesforce revoke token =>')
 
@@ -609,4 +607,4 @@ class SalesforceRevokeAccess(APIView):
     def _make_revoke_request(self, refresh_token):
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'token': refresh_token}
-        return requests.post(self.endpoint_url, headers=headers, data=payload)
+        return requests.post(self.revoke_endpoint_url, headers=headers, data=payload)

@@ -43,3 +43,17 @@ class ClientsUtils(object):
             if redditor:
                 return redditor.id, redditor.name
         return None, None
+
+    @staticmethod
+    def get_salesforce_org_id_name(client_org=None):
+        """
+        Receives a ClientOrg instance and return the Salesforce org name linked to this client org.
+        """
+        if client_org:
+            # Looking for the redditor with the id from the client org instance
+            salesforce_org = SalesforceOrg.objects.get_or_none(
+                org_id=client_org.salesforce_org_id
+            )
+            if salesforce_org:
+                return salesforce_org.org_id, salesforce_org.org_name
+        return None, None

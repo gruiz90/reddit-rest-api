@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-from rest_framework.views import exception_handler
-from rest_framework import exceptions
-from django.core.cache import cache
-from datetime import datetime
-from clients.models import ClientOrg
-from redditors.models import Redditor
-
 import random
 import logging
 import colorlog
 import os
 import praw
 import urllib
+from datetime import datetime
+
+from rest_framework.views import exception_handler
+from rest_framework import exceptions
+from django.core.cache import cache
+from prawcore.exceptions import ResponseException
+
+from clients.models import ClientOrg
+from redditors.models import Redditor
 
 
 def custom_json_exception_handler(exc, context):
@@ -102,7 +104,20 @@ class Utils(object):
 
         if client_org:
             client_org.new_client_request()
-            return Utils.get_reddit_instance(token=client_org.reddit_token), client_org
+            reddit = Utils.get_reddit_instance(token=client_org.reddit_token)
+            # Here I need to check if the access token is actually alive
+            # I can do a request to get the authenticated user data in a try/except
+            try:
+                reddit.user.me()
+            except ResponseException as ex:
+                raise exceptions.AuthenticationFailed(
+                    'Reddit access token authorization problem. '
+                    'The user may need to re-authorize the app. '
+                    f'Exception raised: {repr(ex)}.'
+                )
+
+            # All cool, I can return the reddit instance and client_org tuple
+            return reddit, client_org
         else:
             # Read only reddit instance when no client org found
             return Utils.get_reddit_instance(), None
