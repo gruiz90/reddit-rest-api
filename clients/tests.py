@@ -113,7 +113,7 @@ class ClientsDataTests(APITestCase):
         """
 		Function to test disconnect endpoint when having the bearer token
 		"""
-        url = reverse('clients:disconnect')
+        url = reverse('clients:me')
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
