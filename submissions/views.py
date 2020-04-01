@@ -145,92 +145,51 @@ class SubmissionVote(APIView):
 
         # Get vote value from data json and check if valid
         vote_value = self._validate_vote_value(request.data.get('vote_value'))
+
+        submission_data = None
+        status_code = status.HTTP_200_OK
         if reddit.read_only:
-            vote_action = 'dummy'
+            msg = f'Vote action \'dummy\' successful for submission with id: {id}.'
         else:
-            if vote_value == -1:
-                vote_action = 'Downvote'
-                submission.downvote()
-            elif vote_value == 0:
-                vote_action = 'Clear Vote'
-                submission.clear_vote()
-            else:
-                vote_action = 'Upvote'
-                submission.upvote()
-
-        submission_data = SubmissionsUtils.get_submission_data_simple(submission)
-        return Response(
-            {
-                'detail': f'Vote action \'{vote_action}\' successful for submission with id: {id}.',
-                'submission': submission_data,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class SubmissionReply(APIView):
-    """
-    API endpoint to post a comment in a submission by the id
-    Data in json: body - The Markdown formatted content for a comment.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, id, Format=None):
-        logger.info('-' * 100)
-        logger.info(f'Submission "{id}" reply =>')
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, client_org = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
-        submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
-        if not submission:
-            raise exceptions.NotFound(
-                detail={'detail': f'No submission exists with the id: {id}.'}
-            )
-
-        # Get the markdown content from json body attribute
-        markdown_body = Utils.validate_body_value(request.data.get('body'))
-
-        comment_data = None
-        status_code = status.HTTP_201_CREATED
-        if not reddit.read_only:
-            # Try to post the comment to the submission
             try:
-                comment = submission.reply(markdown_body)
-                comment_data = CommentsUtils.get_comment_data(comment)
-                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-                msg = (
-                    f'New comment posted by u/{redditor_name} with id \'{comment.id}\' '
-                    f'to submission with id: {id}'
+                if vote_value == -1:
+                    vote_action = 'Downvote'
+                    submission.downvote()
+                elif vote_value == 0:
+                    vote_action = 'Clear Vote'
+                    submission.clear_vote()
+                else:
+                    vote_action = 'Upvote'
+                    submission.upvote()
+                submission_data = SubmissionsUtils.get_submission_data_simple(
+                    submission
                 )
+                msg = f'Vote action \'{vote_action}\' successful for submission with id: {id}.'
                 logger.info(msg)
             except Exception as ex:
-                if isinstance(ex, Forbidden):
-                    msg = (
-                        f'Cannot create a comment in submission with id: {id}. '
-                        f'Forbidden exception: {repr(ex)}'
-                    )
-                    status_code = status.HTTP_403_FORBIDDEN
-                else:
-                    msg = (
-                        f'Error creating comment in submission with id: {id}. '
-                        f'Exception raised: {repr(ex)}.'
-                    )
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                msg = (
+                    f'Error posting vote to submission with id: {id}. '
+                    f'Exception raised: {repr(ex)}.'
+                )
                 logger.error(msg)
-        else:
-            msg = f'Reddit instance is read only. Cannot create comment in submission with id: {id}.'
-            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
-            logger.warn(msg)
 
-        return Response({'detail': msg, 'comment': comment_data}, status=status_code)
+        return Response(
+            {'detail': msg, 'submission': submission_data}, status=status_code,
+        )
 
 
 class SubmissionCrosspost(APIView):
     """
-    API endpoint to crosspost a submission to a target subreddit.
+        API endpoint to crosspost a submission to a target subreddit.\n
+        JSON data params:\n
+                    subreddit=[string] –- Name of the subreddit or Subreddit object to crosspost into.
+                    title=[string] –- Title of the submission. Will use this submission’s title if None (default: None).
+                    flair_id=[string] -- The flair template to select (default: None)
+                    flair_text=[string] -- If the template’s flair_text_editable value is True, this value will set a custom text (default: None).
+                    send_replies=[bool] -- When True, messages will be sent to the submission author when comments are made to the submission (default: True).
+                    nsfw=[bool] -- Whether or not the submission should be marked NSFW (default: False).
+                    spoiler=[bool] -- Whether or not the submission should be marked as a spoiler (default: False).
     """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
@@ -314,18 +273,22 @@ class SubmissionCrosspost(APIView):
             logger.warn(msg)
 
         return Response(
-            {'detail': msg, 'submission': crosspost_data}, status=status_code
+            {'detail': msg, 'cross_submission': crosspost_data}, status=status_code
         )
 
 
 class SubmissionComments(APIView):
     """
-    API endpoint to get a Submission top level comments. submissions/<str:id>/comments
-    It returns a max of 20 top level comments per request. Uses offset to get the rest in different request.
-    query_params: sort=[best|top|new|controversial|old|q_a] (default=best)
-                              limit=[0<int<21] (default=10)
-                              offset=[0<=int] (default=0)
-                              flat=True|False (default=False)
+        API endpoint access submision top level comments -> submissions/:id/comments\n
+        GET returns a max of 20 top level comments per request. Uses offset to get the rest in different request.\n
+        URL query params:\n
+                    sort=[best|top|new|controversial|old|q_a] (default=best)
+                    limit=[0<int<21] (default=10)
+                    offset=[0<=int] (default=0)
+                    flat=True|False (default=False)
+        POST allows to create a comment in a submission by the id.\n
+        JSON data params:\n
+                    body - The Markdown formatted content for a comment.
     """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
@@ -343,9 +306,7 @@ class SubmissionComments(APIView):
             flat = bool(flat)
         except ValueError:
             raise exceptions.ParseError(
-                detail={
-                    'detail': f'flat parameter must be a boolean: true | false.'
-                }
+                detail={'detail': f'flat parameter must be a boolean: true | false.'}
             )
 
         try:
@@ -432,3 +393,53 @@ class SubmissionComments(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+    def post(self, request, id, Format=None):
+        logger.info('-' * 100)
+        logger.info(f'Submission "{id}" reply =>')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        # Get subreddit instance with the name provided
+        submission = SubmissionsUtils.get_sub_if_exists(id, reddit)
+        if not submission:
+            raise exceptions.NotFound(
+                detail={'detail': f'No submission exists with the id: {id}.'}
+            )
+
+        # Get the markdown content from json body attribute
+        markdown_body = Utils.validate_body_value(request.data.get('body'))
+
+        comment_data = None
+        status_code = status.HTTP_201_CREATED
+        if not reddit.read_only:
+            # Try to post the comment to the submission
+            try:
+                comment = submission.reply(markdown_body)
+                comment_data = CommentsUtils.get_comment_data(comment)
+                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+                msg = (
+                    f'New comment posted by u/{redditor_name} with id \'{comment.id}\' '
+                    f'to submission with id: {id}'
+                )
+                logger.info(msg)
+            except Exception as ex:
+                if isinstance(ex, Forbidden):
+                    msg = (
+                        f'Cannot create a comment in submission with id: {id}. '
+                        f'Forbidden exception: {repr(ex)}'
+                    )
+                    status_code = status.HTTP_403_FORBIDDEN
+                else:
+                    msg = (
+                        f'Error creating comment in submission with id: {id}. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                logger.error(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot create comment in submission with id: {id}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response({'detail': msg, 'comment': comment_data}, status=status_code)

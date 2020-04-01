@@ -10,20 +10,21 @@ Heroku Reddit API
 .. |Code Style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
-A Heroku web app that provides a complete REST API with everything that
-the Salesforce org client needs to interact with Reddit. (Authorization,
-subscriptions to subreddits, get submissions and comments from
+A Django web app that provides a REST API (kind of) with everything that
+the Salesforce org client (or other clients, not necessarily Salesforce focused) needs to interact with Reddit.
+
+Authorization, subscriptions to subreddits, get submissions and comments from
 subreddits, create submissions and comments, reply to comments,
-upvote/downvote, direct messages to reddit users, ...)
+upvote/downvote and others.
 
-Important paths
----------------
+Root paths
+----------
 
--  `Authorization </clients>`__
--  `Redditors </redditors>`__
+-  `Clients and Authorization </clients>`__
 -  `Subreddits </subreddits>`__
 -  `Submissions </submissions>`__
 -  `Comments </comments>`__
+-  `Redditors </redditors>`__
 
 REST API implemented using **DRF** (`Django Rest Framework <https://github.com/encode/django-rest-framework>`__) and
 **PRAW** (`Python Reddit APIWrapper <https://github.com/praw-dev/praw>`__).
@@ -40,7 +41,48 @@ REST API implemented using **DRF** (`Django Rest Framework <https://github.com/e
     </p>
 
 
--  **Common errors:**
+How to run app locally
+----------------------
+
+- **Dependencies:**
+
+    Postgress, Redis, ...
+
+TODO
+
+How to deploy app to Heroku or others
+-------------------------------------
+
+TODO
+
+Common Error Responses:
+-----------------------
+
+-  **Code:** 401 Unauthorized **Content:**
+
+   .. code:: json
+
+       {
+           "error": {
+               "code": 401,
+               "messages": [
+                   "detail: Authentication credentials were not provided."
+               ]
+           }
+       }
+
+   OR
+
+   .. code:: json
+
+       {
+           "error": {
+               "code": 401,
+               "messages": [
+                   "detail: Invalid token."
+               ]
+           }
+       }
 
     .. code:: json
 

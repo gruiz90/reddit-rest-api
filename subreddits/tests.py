@@ -33,16 +33,16 @@ class SubredditsTests(APITestCase):
             },
         )
 
-    def test_subreddit_info(self):
+    def test_subreddit(self):
         """
-        Function to test subreddit_info endpoint when having the bearer token.
+        Function to test subreddit endpoint when having the bearer token.
         I can use the read_only mod of reddit instance to get an actual subreddit data.
         """
         # First try with a dummy name to get 404 response
-        self._dummy_subreddit_request('subreddits:subreddit_info')
+        self._dummy_subreddit_request('subreddits:subreddit')
 
         # Now try with a real subreddit name
-        url = reverse('subreddits:subreddit_info', args=['test'])
+        url = reverse('subreddits:subreddit', args=['test'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('test' in response.data['display_name'])
@@ -113,17 +113,17 @@ class SubredditsTests(APITestCase):
         self._subscribe_unsubscribe_request()
         self._subscribe_unsubscribe_request(action='unsubscribe')
 
-    def test_subreddit_submmit_submission(self):
+    def test_subreddit_submission(self):
         """
-        Function to test subreddit_submit_submission.
+        Function to test POST in subreddit_submissions.
         """
         # First try with a dummy id to get 404 response
         self._dummy_subreddit_request(
-            'subreddits:subreddit_submit_submission', post=True
+            'subreddits:subreddit_submissions', post=True
         )
 
         # Now try with a real subreddit name only with a title value
-        url = reverse(f'subreddits:subreddit_submit_submission', args=['test'])
+        url = reverse(f'subreddits:subreddit_submissions', args=['test'])
         response = self.client.post(url, data={'title': 'test'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(

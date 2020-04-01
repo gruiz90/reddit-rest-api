@@ -7,42 +7,12 @@ authorized client.
 -  `Submission details <#submission-details>`__
 -  `Submission delete <#submission-delete>`__
 -  `Submission post vote <#submission-vote>`__
--  `Submission reply <#submission-reply>`__
 -  `Submission crosspost <#submission-crosspost>`__
 -  `Submission comments <#submission-comments>`__
+-  `Submission post comment <#submission-post-comment>`__
 
 Common error responses for Submissions endpoints:
 -------------------------------------------------
-
--  **Code:** 401 Unauthorized **Content:**
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Authentication credentials were not provided."
-               ]
-           }
-       }
-
-   OR
-
--  **Code:** 401 Unauthorized **Content:**
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Invalid token."
-               ]
-           }
-       }
-
-   OR
 
 -  **Code:** 404 Not Found **Content:**
 
@@ -57,7 +27,7 @@ Common error responses for Submissions endpoints:
            }
        }
 
-Submission Details
+Submission details
 ------------------
 
 Endpoint to get the Submission data by the id provided in the URL.
@@ -115,6 +85,60 @@ Endpoint to get the Submission data by the id provided in the URL.
            }
        }
 
+Submission delete
+-----------------
+
+Endpoint to delete a submission by the id provided in the URL.
+
+-  **URL**
+
+   ``/submissions/<str:id>``
+
+-  **Method:**
+
+   ``DELETE``
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http DELETE https://reddit-rest-api.herokuapp.com/submissions/e8ge80 \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Submission 'e8ge80' successfully deleted."
+            }
+        }
+
+-  **Error Response:**
+
+   **Code:** 403 Forbidden **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Cannot delete the submission with id: e8ge80. The authenticated reddit user u/sfdctest needs to be the same as the submission's author u/testuser"
+            }
+        }
+
+   **Code:** 404 Not Found **Content:**
+
+   .. code:: json
+
+        {
+            "data": {
+                "detail": "Cannot delete the submission with id: e8ge80. The submission was already deleted or there is no way to verify the author at this moment."
+            }
+        }
+
 Submission Vote
 ---------------
 
@@ -148,7 +172,7 @@ is executed for the submission.
 
    .. code:: shell
 
-       http POST https://reddit-rest-api.herokuapp.com/submissions/e8a0c7/vote \
+       http POST https://reddit-rest-api.herokuapp.com/submissions/fsuibu/vote \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
        vote_value=1
 
@@ -159,12 +183,116 @@ is executed for the submission.
    .. code:: json
 
        {
-           "data": {
-               "detail": "Vote action 'Upvote' successful for submission with id: e8a0c7!"
-           }
-       }
+            "data": {
+                "detail": "Vote action 'Upvote' successful for submission with id: fsuibu.",
+                "submission": {
+                    "id": "fsuibu",
+                    "name": "t3_fsuibu",
+                    "title": "Maze Solver Visualizer - Dijkstra's algorithm (asynchronous neighbours)",
+                    "created_utc": "2020-04-01T06:49:15",
+                    "author_name": "mutatedllama",
+                    "num_comments": 64,
+                    "score": 1399,
+                    "url": "https://v.redd.it/xb71rqy5l5q41"
+                }
+            }
+        }
 
-Submission Comments
+Submission crosspost
+--------------------
+
+Endpoint that allows API endpoint to crosspost a submission (by the name provided in the URL) to a target subreddit.
+
+-  **URL**
+
+   ``/submissions/<str:id>/crosspost``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``subreddit=[string] –- Name of the subreddit or Subreddit object to crosspost into.``
+
+   **Optional:**
+
+   ``title=[string] –- Title of the submission. Will use this submission’s title if None (default: None).``
+
+   ``flair_id=[string] -- The flair template to select (default: None)``
+
+   ``flair_text=[string] -- If the template’s flair_text_editable value is True, this value will set a custom text (default: None).``
+
+   ``send_replies=[bool] -- When True, messages will be sent to the submission author when comments are made to the submission (default: True).``
+
+   ``nsfw=[bool] -- Whether or not the submission should be marked NSFW (default: False).``
+
+   ``spoiler=[bool] -- Whether or not the submission should be marked as a spoiler (default: False).``
+
+   e.g:
+
+   .. code:: json
+
+       {
+            "subreddit": "test",
+            "title": "Test crosspost",
+            "send_replies": true,
+            "spoiler": true
+        }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/submissions/fsuibu/crosspost \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       subreddit='test' title='Test crosspost' \
+       send_replies=true spoiler=true
+
+-  **Success Response:**
+
+-  **Code:** 201 Created **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "New crosspost submission created in r/test by u/sfdctest with id: ft86wd.",
+                "cross_submission": {
+                    "id": "ft86wd",
+                    "name": "t3_ft86wd",
+                    "title": "Test crosspost",
+                    "created_utc": "2020-04-01T20:41:47",
+                    "author": {
+                        "id": "4rfkxa54",
+                        "name": "sfdctest",
+                        "created_utc": "2019-10-31T22:22:45",
+                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+                        "comment_karma": 3,
+                        "link_karma": 26
+                    },
+                    "num_comments": 0,
+                    "score": 1,
+                    "upvote_ratio": 1.0,
+                    "permalink": "/r/test/comments/ft86wd/test_crosspost/",
+                    "url": "https://v.redd.it/xb71rqy5l5q41",
+                    "is_original_content": false,
+                    "is_self": false,
+                    "selftext": "",
+                    "clicked": false,
+                    "distinguished": null,
+                    "edited": false,
+                    "locked": false,
+                    "stickied": false,
+                    "spoiler": true,
+                    "over_18": false
+                }
+            }
+        }
+
+Submission comments
 -------------------
 
 Endpoint to get a Submission's comments. It returns a max of 20 comments
@@ -234,3 +362,91 @@ Comments\_Level2, ..., Comments\_LevelN]
                "flat": false
            }
        }
+
+Submission post comment
+-----------------------
+
+Endpoint that allows posting a comment into a submission by the id provided in the URL.
+The body is the Markdown formatted content for the comment.
+
+-  **URL**
+
+   ``/submissions/<str:id>/comments``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``body=[string] -- Markdown formatted content``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "body": "~~testing~~"
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/submissions/fpeo3h/comments \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       body='~~testing~~'
+
+-  **Success Response:**
+
+-  **Code:** 201 Created **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "New comment posted by u/sfdctest with id 'fm56u4x' to submission with id: fpeo3h",
+                "comment": {
+                    "id": "fm56u4x",
+                    "body": "~~testing~~",
+                    "created_utc": "2020-04-01T18:56:39",
+                    "author": {
+                        "id": "4rfkxa54",
+                        "name": "sfdctest",
+                        "created_utc": "2019-10-31T22:22:45",
+                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+                        "comment_karma": 3,
+                        "link_karma": 26
+                    },
+                    "score": 1,
+                    "permalink": "/r/test/comments/fpeo3h/tiny_monk/fm56u4x/",
+                    "link_id": "t3_fpeo3h",
+                    "parent_id": "t3_fpeo3h",
+                    "submission": {
+                        "id": "fpeo3h",
+                        "name": "t3_fpeo3h",
+                        "title": "Tiny monk",
+                        "created_utc": "2020-03-26T16:37:22",
+                        "author_name": "sfdctest",
+                        "num_comments": 6,
+                        "score": 19,
+                        "url": "https://i.pinimg.com/originals/93/64/ef/9364efa9a8b36b0abe30870813af654f.gif"
+                    },
+                    "subreddit": {
+                        "id": "2qh23",
+                        "name": "t5_2qh23",
+                        "display_name": "test",
+                        "public_description": "",
+                        "created_utc": "2008-01-25T05:11:28",
+                        "subscribers": 7352
+                    },
+                    "has_replies": false,
+                    "is_submitter": true,
+                    "distinguished": null,
+                    "edited": false,
+                    "stickied": false
+                }
+            }
+        }

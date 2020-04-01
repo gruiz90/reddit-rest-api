@@ -4,47 +4,18 @@ Subreddits
 All the endpoints provided to interact with Subreddits for an authorized
 client.
 
--  `Subscriptions <#subreddits-subscriptions>`__
--  `Subreddit Info <#subreddit-information>`__
+-  `Subreddit subscriptions <#subreddits-subscriptions>`__
+-  `Subreddit details <#subreddit-details>`__
 -  `Connect a Subreddit <#subreddit-connect>`__
 -  `Disconnect a Subreddit <#subreddit-disconnect>`__
 -  `Subscribe to a Subreddit <#subreddit-subscribe>`__
 -  `Unsubscribe to a Subreddit <#subreddit-unsubscribe>`__
--  `Subreddit Rules <#subreddit-rules>`__
--  `Subreddit Submissions <#subreddit-submissions>`__
+-  `Subreddit rules <#subreddit-rules>`__
+-  `Subreddit submissions <#subreddit-submissions>`__
+-  `Subreddit post submission <#subreddit-post-submission>`__
 
 Common Error Responses for Subreddits endpoints:
 ------------------------------------------------
-
--  **Code:** 401 Unauthorized **Content:**
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Authentication credentials were not provided."
-               ]
-           }
-       }
-
-   OR
-
--  **Code:** 401 Unauthorized **Content:**
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Invalid token."
-               ]
-           }
-       }
-
-   OR
 
 -  **Code:** 404 Not Found **Content:**
 
@@ -59,7 +30,7 @@ Common Error Responses for Subreddits endpoints:
            }
        }
 
-Subreddits Subscriptions
+Subreddits subscriptions
 ------------------------
 
 Endpoint to get the list of subreddits subscriptions for the client.
@@ -108,7 +79,7 @@ Endpoint to get the list of subreddits subscriptions for the client.
            }
        }
 
-Subreddit Information
+Subreddit details
 ---------------------
 
 Endpoint to get the Subreddit data by the name provided in the URL.
@@ -151,7 +122,7 @@ Endpoint to get the Subreddit data by the name provided in the URL.
            }
        }
 
-Subreddit Connect
+Subreddit connect
 -----------------
 
 Endpoint that connects a Salesforce org client to a subreddit by the
@@ -197,7 +168,7 @@ relevant data about the subreddit.
            }
        }
 
-Subreddit Disconnect
+Subreddit disconnect
 --------------------
 
 Endpoint to disconnect a Salesforce org client to a Subreddit by the
@@ -231,7 +202,7 @@ Subreddit if exists.
            }
        }
 
-Subreddit Subscribe
+Subreddit subscribe
 -------------------
 
 Endpoint to subscribe a Salesforce org client to a subreddit by the
@@ -264,7 +235,7 @@ name.
            }
        }
 
-Subreddit Unsubscribe
+Subreddit unsubscribe
 ---------------------
 
 Endpoint to unsubscribe a Salesforce org client from a subreddit by the
@@ -297,7 +268,7 @@ name.
            }
        }
 
-Subreddit Rules
+Subreddit rules
 ---------------
 
 Endpoint to get the rules of a subreddit by the name.
@@ -477,10 +448,10 @@ Endpoint to get the rules of a subreddit by the name.
            }
        }
 
-Subreddit Submissions
+Subreddit submissions
 ---------------------
 
-Endpoint to get a Subreddit's Submissions. It returns a max of 5
+Endpoint to get a Subreddit's submissions. It returns a max of 5
 submissions per request. Need to use an offset to get the rest in
 different requests. Param time\_filter only used when
 sort=[controversial\|top].
@@ -498,7 +469,9 @@ sort=[controversial\|top].
    **Optional:**
 
    ``sort=[hot|controversial|gilded|new|rising|top] (default=hot)``
+
    ``time_filter=[all|day|hour|month|week|year] (default=all)``
+
    ``offset=[0<=int] (default=0)``
 
 -  **Sample Call:**
@@ -573,3 +546,108 @@ sort=[controversial\|top].
                "offset": 0
            }
        }
+
+Subreddit post submission
+-------------------------
+
+Endpoint that allows submiting a text or link submission to a subreddit by the name provided in the URL.
+
+-  **URL**
+
+   ``/subreddits/<str:name>/submissions``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``title=[string] –- The title of the submission.``
+
+   **For text submissions:**
+
+   ``selftext=[string] –- The Markdown formatted content for a text submission. Use an empty string, '', to make a title-only submission.``
+
+   **For link submissions:**
+
+   ``url=[string] –- The URL for a link submission.``
+
+   **Optional:**
+
+   ``flair_id=[string] -- The flair template to select (default: None)``
+
+   ``flair_text=[string] -- If the template’s flair_text_editable value is True, this value will set a custom text (default: None).``
+
+   ``resubmit=[bool] -- When False, an error will occur if the URL has already been submitted (default: True).``
+
+   ``send_replies=[bool] -- When True, messages will be sent to the submission author when comments are made to the submission (default: True).``
+
+   ``nsfw=[bool] -- Whether or not the submission should be marked NSFW (default: False).``
+
+   ``spoiler=[bool] -- Whether or not the submission should be marked as a spoiler (default: False).``
+
+   ``collection_id=[string] -- The UUID of a Collection to add the newly-submitted post to.``
+
+   e.g:
+
+   .. code:: json
+
+       {
+            "title": "title testing",
+            "selftext": "## **_selftext_**",
+            "resubmit": true,
+            "send_replies": true,
+            "spoiler": true
+        }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/subreddits/test/submissions \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       title='title testing' selftext='## **_selftext_**' resubmit=true \
+       send_replies=true spoiler=true
+
+-  **Success Response:**
+
+-  **Code:** 201 Created **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "New text/link submission created in r/test by u/sfdctest with id: ft7w0h.",
+                "submission": {
+                    "id": "ft7w0h",
+                    "name": "t3_ft7w0h",
+                    "title": "title testing",
+                    "created_utc": "2020-04-01T20:26:05",
+                    "author": {
+                        "id": "4rfkxa54",
+                        "name": "sfdctest",
+                        "created_utc": "2019-10-31T22:22:45",
+                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+                        "comment_karma": 3,
+                        "link_karma": 26
+                    },
+                    "num_comments": 0,
+                    "score": 1,
+                    "upvote_ratio": 1.0,
+                    "permalink": "/r/test/comments/ft7w0h/title_testing/",
+                    "url": "https://www.reddit.com/r/test/comments/ft7w0h/title_testing/",
+                    "is_original_content": false,
+                    "is_self": true,
+                    "selftext": "## **_selftext_**",
+                    "clicked": false,
+                    "distinguished": null,
+                    "edited": false,
+                    "locked": false,
+                    "stickied": false,
+                    "spoiler": true,
+                    "over_18": false
+                }
+            }
+        }

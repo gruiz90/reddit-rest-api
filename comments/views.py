@@ -232,83 +232,20 @@ class CommentVote(APIView):
                 )
                 logger.error(msg)
 
-        return Response(
-            {
-                'detail': msg,
-                'comment': comment_data,
-            },
-            status=status_code,
-        )
-
-
-class CommentReply(APIView):
-    """
-    API endpoint that post a reply to a comment by the id
-    Data in json: body - The Markdown formatted content for a comment.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, id, Format=None):
-        logger.info('-' * 100)
-        logger.info(f'Comment "{id}" reply =>')
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, client_org = Utils.new_client_request(request.user)
-        comment = CommentsUtils.get_comment_if_exists(id, reddit)
-        if comment is None:
-            raise exceptions.NotFound(
-                detail={'detail': f'No comment exists with the id: {id}.'}
-            )
-
-        # Get the markdown content from json body attribute
-        markdown_body = Utils.validate_body_value(request.data.get('body'))
-
-        status_code = status.HTTP_201_CREATED
-        reply_comment_data = None
-        if not reddit.read_only:
-            # Try to post the comment to the submission
-            try:
-                reply_comment = comment.reply(markdown_body)
-                reply_comment_data = CommentsUtils.get_comment_data(reply_comment)
-                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-                msg = (
-                    f'New reply posted by u/{redditor_name} with '
-                    f'id \'{reply_comment.id}\' to comment with id: {id}'
-                )
-                logger.info(msg)
-            except Exception as ex:
-                if isinstance(ex, Forbidden):
-                    msg = (
-                        f'Cannot create reply to comment with id: {id}. '
-                        f'Forbidden exception: {repr(ex)}'
-                    )
-                    status_code = status.HTTP_403_FORBIDDEN
-                else:
-                    msg = (
-                        f'Error creating reply to comment with id: {id}. '
-                        f'Exception raised: {repr(ex)}.'
-                    )
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-                logger.error(msg)
-        else:
-            msg = f'Reddit instance is read only. Cannot create reply to comment with id: {id}.'
-            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
-            logger.warn(msg)
-
-        return Response(
-            {'detail': msg, 'comment': reply_comment_data}, status=status_code
-        )
+        return Response({'detail': msg, 'comment': comment_data,}, status=status_code,)
 
 
 class CommentReplies(APIView):
     """
-    API endpoint to get a comment top level replies. comments/<str:id>/replies
-    It returns a max of 20 top level replies per request. Uses offset to get the rest in different request.
-                  limit=[0<int<21] (default=10)
-                  offset=[0<=int] (default=0)
-                  flat=True|False (default=False)
+        API endpoint to access comments replies -> comments/:id/replies\n
+        GET returns a max of 20 top level replies per request.Uses offset to get the rest in different request.\n
+        URL query params:\n
+                    limit=[0<int<21] (default=10)\n
+                    offset=[0<=int] (default=0)\n
+                    flat=True|False (default=False)\n
+        POST allows to create a reply to a comment by the id.\n
+        JSON data params:\n
+                    body - The Markdown formatted content for a comment.\n
     """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
@@ -403,4 +340,55 @@ class CommentReplies(APIView):
                 'flat': flat,
             },
             status=status.HTTP_200_OK,
+        )
+
+    def post(self, request, id, Format=None):
+        logger.info('-' * 100)
+        logger.info(f'Comment "{id}" reply =>')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+        comment = CommentsUtils.get_comment_if_exists(id, reddit)
+        if comment is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No comment exists with the id: {id}.'}
+            )
+
+        # Get the markdown content from json body attribute
+        markdown_body = Utils.validate_body_value(request.data.get('body'))
+
+        status_code = status.HTTP_201_CREATED
+        reply_comment_data = None
+        if not reddit.read_only:
+            # Try to post the comment to the submission
+            try:
+                reply_comment = comment.reply(markdown_body)
+                reply_comment_data = CommentsUtils.get_comment_data(reply_comment)
+                _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
+                msg = (
+                    f'New reply posted by u/{redditor_name} with '
+                    f'id \'{reply_comment.id}\' to comment with id: {id}'
+                )
+                logger.info(msg)
+            except Exception as ex:
+                if isinstance(ex, Forbidden):
+                    msg = (
+                        f'Cannot create reply to comment with id: {id}. '
+                        f'Forbidden exception: {repr(ex)}'
+                    )
+                    status_code = status.HTTP_403_FORBIDDEN
+                else:
+                    msg = (
+                        f'Error creating reply to comment with id: {id}. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
+                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                logger.error(msg)
+        else:
+            msg = f'Reddit instance is read only. Cannot create reply to comment with id: {id}.'
+            status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+            logger.warn(msg)
+
+        return Response(
+            {'detail': msg, 'comment': reply_comment_data}, status=status_code
         )

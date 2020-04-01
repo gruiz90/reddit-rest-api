@@ -8,8 +8,8 @@ view client details and connect Salesforce orgs.
 -  `OAuth callback <#client-oauth-callback>`__
 -  `OAuth status <#client-check-oauth-status>`__
 -  `OAuth confirm <#client-confirm-authorization>`__
--  `Client details <#view-client-details>`__
--  `Client revoke access <#disconnect-client>`__
+-  `Client details <#client-details>`__
+-  `Client disconnect <#client-disconnect>`__
 -  `Salesforce OAuth init <#salesforce-oauth>`__
 -  `Salesforce OAuth callback <#salesforce-oauth-callback>`__
 -  `Salesforce save token <#salesforce-save-token>`__
@@ -237,7 +237,7 @@ Check oauth status for a Salesforce organization client.
            }
        }
 
-Client Confirm Authorization
+Client confirm authorization
 ----------------------------
 
 Handles the autorization confirmation of a Reddit account for a
@@ -367,8 +367,8 @@ Salesforce organization
    The bearer token returned in success response json must be saved to
    use as the bearer token for all requests that need Authorization
 
-View Client details
--------------------
+Client details
+--------------
 
 Retrieves authenticated Reddit account info. GET request returns the
 redditor data. Expects a valid bearer token in the Authorization header.
@@ -467,7 +467,7 @@ redditor data. Expects a valid bearer token in the Authorization header.
            }
        }
 
-Disconnect Client
+Client disconnect
 -----------------
 
 Disconnect a Salesforce Org Client. DELETE request that revokes Reddit access token,

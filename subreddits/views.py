@@ -16,7 +16,7 @@ from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 
-class ConnectSubreddit(APIView):
+class SubredditConnect(APIView):
     """
     API endpoint to connects a Salesforce org client to a subreddit by the name.
     This creates a connection between the ClientOrg and Subreddit, subscribes the reddit user if not already
@@ -72,7 +72,7 @@ class ConnectSubreddit(APIView):
         )
 
 
-class DisconnectSubreddit(APIView):
+class SubredditDisconnect(APIView):
     """
     API endpoint to disconnect a Salesforce org client to a Subreddit by the name.
     This only removes the connection between the ClientOrg and the Subreddit if exists.
@@ -111,7 +111,7 @@ class DisconnectSubreddit(APIView):
         )
 
 
-class SubredditInfo(APIView):
+class Subreddit(APIView):
     """
     API endpoint to get the Subreddit data by the name provided.
     """
@@ -264,12 +264,25 @@ class SubredditUnsubscribe(APIView):
 
 class SubredditSubmissions(APIView):
     """
-    API endpoint to get a Subreddit submissions. subreddits/<str:name>/submissions
-    It returns a max of 5 submissions per request. Uses offset to get the rest in different request.
-    query_params: sort=[controversial|gilded|hot|new|rising|top] (default=hot)
-                  time_filter=[all|day|hour|month|week|year] (default=all)
-                  offset=[0<=int<11] (default=0)
-    time_filter only used when sort=[controversial|top]
+        API endpoint to access Subreddit's submissions -> subreddits/:name/submissions\n
+        It returns a max of 5 submissions per request. Uses offset to get the rest in different request.\n
+        URL query params:\n
+                    sort=[controversial|gilded|hot|new|rising|top] (default=hot)
+                    time_filter=[all|day|hour|month|week|year] (default=all)
+                    offset=[0<=int<11] (default=0)
+                    time_filter only used when sort=[controversial|top]
+        POST allows to submit a text, link, ~~image or video~~ submission to a subreddit.\n
+        JSON data params:\n
+                    title=[string] –- The title of the submission.
+                    selftext=[string] –- The Markdown formatted content for a text submission. Use an empty string, '', to make a title-only submission.
+                    url=[string] –- The URL for a link submission.
+                    flair_id=[string] -- The flair template to select (default: None)
+                    flair_text=[string] -- If the template’s flair_text_editable value is True, this value will set a custom text (default: None).
+                    resubmit=[bool] -- When False, an error will occur if the URL has already been submitted (default: True).
+                    send_replies=[bool] -- When True, messages will be sent to the submission author when comments are made to the submission (default: True).
+                    nsfw=[bool] -- Whether or not the submission should be marked NSFW (default: False).
+                    spoiler=[bool] -- Whether or not the submission should be marked as a spoiler (default: False).
+                    collection_id=[string] -- The UUID of a Collection to add the newly-submitted post to.
     """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
@@ -358,15 +371,6 @@ class SubredditSubmissions(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
-
-class SubredditSubmitSubmission(APIView):
-    """
-    API endpoint to submit a text, link, image or video submission to a subreddit
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def post(self, request, name, Format=None):
         logger.info('-' * 100)

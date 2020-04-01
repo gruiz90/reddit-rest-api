@@ -162,7 +162,7 @@ class Utils(object):
         if not isinstance(body, str):
             raise exceptions.ParseError(
                 detail={
-                    'detail': 'The body must contain the comment in a Markdown format.'
+                    'detail': 'The body must contain the comment in a Markdown formatted format.'
                 }
             )
         return body

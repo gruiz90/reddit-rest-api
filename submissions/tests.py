@@ -82,20 +82,20 @@ class SubmissionsTests(APITestCase):
             f'Vote action \'dummy\' successful for submission with id: {submission_id}.',
         )
 
-    def test_submission_reply(self):
+    def test_submission_comment(self):
         """
-        Function to test submission_reply endpoint.
+        Function to test POST to submission_comments endpoint.
         """
-        self._dummy_submission_request('submissions:submission_reply', post=True)
+        self._dummy_submission_request('submissions:submission_comments', post=True)
 
         # Now try with a real submission id
         submission_id = '78uvdw'
-        url = reverse('submissions:submission_reply', args=[submission_id])
+        url = reverse('submissions:submission_comments', args=[submission_id])
         response = self.client.post(url, data={'body': 0})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data['error']['messages'][0],
-            'detail: The body must contain the comment in a Markdown format.',
+            'detail: The body must contain the comment in a Markdown formatted format.',
         )
 
         response = self.client.post(url, data={'body': 'test'})

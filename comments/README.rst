@@ -8,41 +8,11 @@ client.
 -  `Comment edit <#comment-edit>`__
 -  `Comment delete <#comment-delete>`__
 -  `Comment post vote <#comment-vote>`__
--  `Comment reply <#comment-reply>`__
 -  `Comment replies <#comment-replies>`__
+-  `Comment post reply <#comment-post-reply>`__
 
 Common error responses for Comments endpoints:
 ----------------------------------------------
-
--  **Code:** 401 Unauthorized **Content:**
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Authentication credentials were not provided."
-               ]
-           }
-       }
-
-   OR
-
--  **Code:** 401 Unauthorized **Content:**
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Invalid token."
-               ]
-           }
-       }
-
-   OR
 
 -  **Code:** 404 Not Found **Content:**
 
@@ -214,6 +184,19 @@ The body is the Markdown formatted content for the comment.
             }
         }
 
+-  **Error Response:**
+
+   **Code:** 403 Forbidden **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Cannot edit the comment with id: flkv4st. The authenticated reddit user u/sfdctest needs to be the same as the comment's author u/testuser",
+                "comment": null
+            }
+        }
+
 Comment delete
 -------------------
 
@@ -248,21 +231,13 @@ Endpoint to delete a comment by the id provided in the URL.
 
 -  **Error Response:**
 
--  **Call:**
-
-   .. code:: shell
-
-       http DELETE https://reddit-rest-api.herokuapp.com/comments/flkv4st \
-       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
-
    **Code:** 403 Forbidden **Content:**
 
    .. code:: json
 
        {
             "data": {
-                "detail": "Cannot delete the comment with id: flkv4st. The authenticated reddit user u/sfdctest needs to be the same as the comment's author u/testuser",
-                "comment": null
+                "detail": "Cannot delete the comment with id: flkv4st. The authenticated reddit user u/sfdctest needs to be the same as the comment's author u/testuser"
             }
         }
 
@@ -336,95 +311,6 @@ is executed for the submission.
             }
         }
 
-Comment reply
--------------
-
-Endpoint that allows posting a reply to a comment by the id provided in the URL.
-The body is the Markdown formatted content for the comment.
-
--  **URL**
-
-   ``/comments/<str:id>/reply``
-
--  **Method:**
-
-   ``POST``
-
--  **Data Params**
-
-   **Required:**
-
-   ``body=[string] -- Markdown formatted content``
-
-   e.g:
-
-   .. code:: json
-
-       {
-           "body": "# test"
-       }
-
--  **Sample Call:**
-
-   .. code:: shell
-
-       http POST https://reddit-rest-api.herokuapp.com/comments/flkv4st/reply \
-       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
-       body=# test
-
--  **Success Response:**
-
--  **Code:** 200 OK **Content:**
-
-   .. code:: json
-
-       {
-            "data": {
-                "detail": "New reply posted by u/sfdctest with id 'fm37apt' to comment with id: flkv4st",
-                "comment": {
-                    "id": "fm37apt",
-                    "body": "# test",
-                    "created_utc": "2020-04-01T04:19:17",
-                    "author": {
-                        "id": "4rfkxa54",
-                        "name": "sfdctest",
-                        "created_utc": "2019-10-31T22:22:45",
-                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
-                        "comment_karma": 3,
-                        "link_karma": 26
-                    },
-                    "score": 1,
-                    "permalink": "/r/test/comments/fpeo3h/tiny_monk/fm37apt/",
-                    "link_id": "t3_fpeo3h",
-                    "parent_id": "t1_flkv4st",
-                    "submission": {
-                        "id": "fpeo3h",
-                        "name": "t3_fpeo3h",
-                        "title": "Tiny monk",
-                        "created_utc": "2020-03-26T16:37:22",
-                        "author_name": "sfdctest",
-                        "num_comments": 5,
-                        "score": 18,
-                        "url": "https://i.pinimg.com/originals/93/64/ef/9364efa9a8b36b0abe30870813af654f.gif"
-                    },
-                    "subreddit": {
-                        "id": "2qh23",
-                        "name": "t5_2qh23",
-                        "display_name": "test",
-                        "public_description": "",
-                        "created_utc": "2008-01-25T05:11:28",
-                        "subscribers": 7351
-                    },
-                    "has_replies": false,
-                    "is_submitter": true,
-                    "distinguished": null,
-                    "edited": false,
-                    "stickied": false
-                }
-            }
-        }
-
-
 Comment replies
 ---------------
 
@@ -493,3 +379,91 @@ The order of the list with flat=True is [Reply\_Level1, Reply\_Level2,
                "flat": "True"
            }
        }
+
+Comment post reply
+------------------
+
+Endpoint that allows posting a reply to a comment by the id provided in the URL.
+The body is the Markdown formatted content for the comment.
+
+-  **URL**
+
+   ``/comments/<str:id>/replies``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``body=[string] -- Markdown formatted content``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "body": "# test"
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/comments/flkv4st/replies \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       body=# test
+
+-  **Success Response:**
+
+-  **Code:** 201 Created **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "New reply posted by u/sfdctest with id 'fm37apt' to comment with id: flkv4st",
+                "comment": {
+                    "id": "fm37apt",
+                    "body": "# test",
+                    "created_utc": "2020-04-01T04:19:17",
+                    "author": {
+                        "id": "4rfkxa54",
+                        "name": "sfdctest",
+                        "created_utc": "2019-10-31T22:22:45",
+                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+                        "comment_karma": 3,
+                        "link_karma": 26
+                    },
+                    "score": 1,
+                    "permalink": "/r/test/comments/fpeo3h/tiny_monk/fm37apt/",
+                    "link_id": "t3_fpeo3h",
+                    "parent_id": "t1_flkv4st",
+                    "submission": {
+                        "id": "fpeo3h",
+                        "name": "t3_fpeo3h",
+                        "title": "Tiny monk",
+                        "created_utc": "2020-03-26T16:37:22",
+                        "author_name": "sfdctest",
+                        "num_comments": 5,
+                        "score": 18,
+                        "url": "https://i.pinimg.com/originals/93/64/ef/9364efa9a8b36b0abe30870813af654f.gif"
+                    },
+                    "subreddit": {
+                        "id": "2qh23",
+                        "name": "t5_2qh23",
+                        "display_name": "test",
+                        "public_description": "",
+                        "created_utc": "2008-01-25T05:11:28",
+                        "subscribers": 7351
+                    },
+                    "has_replies": false,
+                    "is_submitter": true,
+                    "distinguished": null,
+                    "edited": false,
+                    "stickied": false
+                }
+            }
+        }

@@ -61,7 +61,7 @@ class CommentsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data['error']['messages'][0],
-            'detail: The body must contain the comment in a Markdown format.',
+            'detail: The body must contain the comment in a Markdown formatted format.',
         )
 
         response = self.client.patch(url, data={'body': 'test'})
@@ -105,18 +105,18 @@ class CommentsTests(APITestCase):
 
     def test_comment_reply(self):
         """
-        Function to test comment_reply endpoint.
+        Function to test post comment_replies endpoint.
         """
-        self._dummy_comment_request('comments:comment_reply', post=True)
+        self._dummy_comment_request('comments:comment_replies', post=True)
 
         # Now try with a real comment id
         comment_id = 'faab0e4'
-        url = reverse('comments:comment_reply', args=[comment_id])
+        url = reverse('comments:comment_replies', args=[comment_id])
         response = self.client.post(url, data={'body': 0})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data['error']['messages'][0],
-            'detail: The body must contain the comment in a Markdown format.',
+            'detail: The body must contain the comment in a Markdown formatted format.',
         )
 
         response = self.client.post(url, data={'body': 'test'})
