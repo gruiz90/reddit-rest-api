@@ -4,11 +4,14 @@ Submissions
 All the endpoints provided to interact with Submissions for an
 authorized client.
 
--  `Submission Information <#submission-information>`__
--  `Submission Comments <#submission-comments>`__
--  `Submission Post Vote <#submission-vote>`__
+-  `Submission details <#submission-details>`__
+-  `Submission delete <#submission-delete>`__
+-  `Submission post vote <#submission-vote>`__
+-  `Submission reply <#submission-reply>`__
+-  `Submission crosspost <#submission-crosspost>`__
+-  `Submission comments <#submission-comments>`__
 
-Common Error Responses for Submissions endpoints:
+Common error responses for Submissions endpoints:
 -------------------------------------------------
 
 -  **Code:** 401 Unauthorized **Content:**
@@ -54,8 +57,8 @@ Common Error Responses for Submissions endpoints:
            }
        }
 
-Submission Information
-----------------------
+Submission Details
+------------------
 
 Endpoint to get the Submission data by the id provided in the URL.
 
@@ -109,6 +112,55 @@ Endpoint to get the Submission data by the id provided in the URL.
                "stickied": false,
                "spoiler": false,
                "over_18": false
+           }
+       }
+
+Submission Vote
+---------------
+
+Endpoint to post a vote for a submission by the id provided in the url.
+Passing vote\_value = [-1\|0\|1] a downvote, clear\_vote, upvote action
+is executed for the submission.
+
+-  **URL**
+
+   ``/submissions/<str:id>/vote``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``vote_value=[-1<=int<=1]``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "vote_value": 1
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/submissions/e8a0c7/vote \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       vote_value=1
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+           "data": {
+               "detail": "Vote action 'Upvote' successful for submission with id: e8a0c7!"
            }
        }
 
@@ -180,54 +232,5 @@ Comments\_Level2, ..., Comments\_LevelN]
                "limit_request": 2,
                "offset": 3,
                "flat": false
-           }
-       }
-
-Submission Vote
----------------
-
-Endpoint to post a vote for a submission by the id provided in the url.
-Passing vote\_value = [-1\|0\|1] a downvote, clear\_vote, upvote action
-is executed for the submission.
-
--  **URL**
-
-   ``/submissions/<str:id>/vote``
-
--  **Method:**
-
-   ``POST``
-
--  **Data Params**
-
-   **Required:**
-
-   ``vote_value=[-1<=int<=1]``
-
-   e.g:
-
-   .. code:: json
-
-       {
-           "vote_value": 1
-       }
-
--  **Sample Call:**
-
-   .. code:: shell
-
-       http POST https://reddit-rest-api.herokuapp.com/submissions/e8a0c7/vote \
-       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
-       vote_value=1
-
--  **Success Response:**
-
--  **Code:** 200 OK **Content:**
-
-   .. code:: json
-
-       {
-           "data": {
-               "detail": "Vote action 'Upvote' successful for submission with id: e8a0c7!"
            }
        }

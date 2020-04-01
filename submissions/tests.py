@@ -33,31 +33,31 @@ class SubmissionsTests(APITestCase):
             },
         )
 
-    def test_submission_info(self):
+    def test_submission(self):
         """
-        Function to test submission_info get endpoint when having the bearer token.
+        Function to test submission get endpoint when having the bearer token.
         I can use the read_only mod of reddit instance to get an actual submission data.
         """
         # First try with a dummy id to get 404 response
-        self._dummy_submission_request('submissions:submission_info')
+        self._dummy_submission_request('submissions:submission')
 
         # Now try with a real comment id
-        url = reverse('submissions:submission_info', args=['78uvdw'])
+        url = reverse('submissions:submission', args=['78uvdw'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('Python' in response.data['title'])
 
-    def test_submission_info_delete(self):
+    def test_submission_delete(self):
         """
-        Function to test submission_info delete endpoint when having the bearer token.
+        Function to test submission delete endpoint when having the bearer token.
         I can use the read_only mod of reddit instance to get an actual submission data.
         """
         # First try with a dummy id to get 404 response
-        self._dummy_submission_request('submissions:submission_info', delete=True)
+        self._dummy_submission_request('submissions:submission', delete=True)
 
         # Now try with a real submission id
         submission_id = '78uvdw'
-        url = reverse('submissions:submission_info', args=[submission_id])
+        url = reverse('submissions:submission', args=[submission_id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertTrue(

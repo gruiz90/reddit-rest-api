@@ -4,14 +4,14 @@ Comments
 All the endpoints provided to interact with Submission's Comments for an authorized
 client.
 
--  `Comment Details <#comment-details>`__
--  `Comment Edit <#comment-edit>`__
--  `Comment Delete <#comment-delete>`__
--  `Comment Post Vote <#comment-vote>`__
--  `Comment Reply <#comment-reply>`__
--  `Comment Replies <#comment-replies>`__
+-  `Comment details <#comment-details>`__
+-  `Comment edit <#comment-edit>`__
+-  `Comment delete <#comment-delete>`__
+-  `Comment post vote <#comment-vote>`__
+-  `Comment reply <#comment-reply>`__
+-  `Comment replies <#comment-replies>`__
 
-Common Error Responses for Comments endpoints:
+Common error responses for Comments endpoints:
 ----------------------------------------------
 
 -  **Code:** 401 Unauthorized **Content:**
@@ -57,10 +57,10 @@ Common Error Responses for Comments endpoints:
            }
        }
 
-Comment Details
+Comment details
 -------------------
 
-Endpoint to get the Comment data by the id provided in the URL.
+Endpoint to get the Comment details by the id provided in the URL.
 
 -  **URL**
 
@@ -126,7 +126,7 @@ Endpoint to get the Comment data by the id provided in the URL.
            }
        }
 
-Comment Edit
+Comment edit
 -------------------
 
 Endpoint to edit a comment by the id provided in the URL.
@@ -214,7 +214,7 @@ The body is the Markdown formatted content for the comment.
             }
         }
 
-Comment Delete
+Comment delete
 -------------------
 
 Endpoint to delete a comment by the id provided in the URL.
@@ -276,7 +276,7 @@ Endpoint to delete a comment by the id provided in the URL.
             }
         }
 
-Comment Vote
+Comment vote
 ------------
 
 Endpoint to post a vote for a comment by the id provided in the url.
@@ -336,7 +336,7 @@ is executed for the submission.
             }
         }
 
-Comment Reply
+Comment reply
 -------------
 
 Endpoint that allows posting a reply to a comment by the id provided in the URL.
@@ -425,7 +425,7 @@ The body is the Markdown formatted content for the comment.
         }
 
 
-Comment Replies
+Comment replies
 ---------------
 
 Endpoint to get a Comment's replies. It returns a max of 20 replies per

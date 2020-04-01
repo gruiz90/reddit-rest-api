@@ -16,7 +16,7 @@ from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 
-class SubmissionInfo(APIView):
+class Submission(APIView):
     """
     API endpoint to get/delete a Submission by the id provided.
     """
