@@ -244,7 +244,7 @@ class ClientOauthConfirmation(APIView):
         return Response(redditor_data, status=status.HTTP_201_CREATED)
 
 
-class ClientInfo(APIView):
+class Client(APIView):
     """
     API endpoint to get authenticated Reddit account info.
     GET request returns the redditor data.

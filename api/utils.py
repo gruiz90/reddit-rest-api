@@ -10,6 +10,7 @@ from datetime import datetime
 from rest_framework.views import exception_handler
 from rest_framework import exceptions
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from prawcore.exceptions import ResponseException
 
 from clients.models import ClientOrg
@@ -86,16 +87,26 @@ class Utils(object):
             [ClientOrg object with validated reddit_token | Django super user]
         """
         client_org = None
+        session_auth = False
         if type(auth_client) is not ClientOrg:
+            session_auth = True
             # Here I need to get a valid client org for the authenticated user, look for a redditor with
             # same name as the user and get the client_org object with this redditor if possible
             redditor = Redditor.objects.get_or_none(name=auth_client.username)
             if redditor:
                 try:
-                    client_org = ClientOrg.objects.filter(redditor_id=redditor.id)[0]
-                except IndexError:
-                    # Just pass this exception here, client_org is None already
-                    pass
+                    client_org = (
+                        ClientOrg.objects.filter(
+                            redditor_id=redditor.id, is_active=True
+                        )
+                        .order_by('-connected_at')[0:1]
+                        .get()
+                    )
+                except ObjectDoesNotExist:
+                    # Just print this here...
+                    print(
+                        f'No client org found corresponding to username: {auth_client.username}'
+                    )
         else:
             # If the request is authenticated correctly by the bearer token then I can get
             # the client_org from the request.user. Return tuple from TokenAuthentication:
@@ -110,11 +121,16 @@ class Utils(object):
             try:
                 reddit.user.me()
             except ResponseException as ex:
-                raise exceptions.AuthenticationFailed(
-                    'Reddit access token authorization problem. '
-                    'The user may need to re-authorize the app. '
-                    f'Exception raised: {repr(ex)}.'
-                )
+                if session_auth:
+                    # In this case if the reddit token is not live then just use
+                    # read only instance
+                    return Utils.get_reddit_instance(), None
+                else:
+                    raise exceptions.AuthenticationFailed(
+                        'Reddit access token authorization problem. '
+                        'The user may need to re-authorize the app. '
+                        f'Exception raised: {repr(ex)}.'
+                    )
 
             # All cool, I can return the reddit instance and client_org tuple
             return reddit, client_org

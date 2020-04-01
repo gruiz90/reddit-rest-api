@@ -4,14 +4,14 @@ Clients Authorization
 All this endpoints provided ways to authorize/revoke access to client's Reddit Account, 
 view client details and connect Salesforce orgs.
 
--  `OAuth Init <#client-oauth>`__
--  `OAuth Callback <#client-oauth-callback>`__
--  `OAuth Status <#client-check-oauth-status>`__
--  `OAuth Confirm <#client-confirm-authorization>`__
+-  `OAuth init <#client-oauth>`__
+-  `OAuth callback <#client-oauth-callback>`__
+-  `OAuth status <#client-check-oauth-status>`__
+-  `OAuth confirm <#client-confirm-authorization>`__
 -  `Client details <#view-client-details>`__
 -  `Client revoke access <#disconnect-client>`__
--  `Salesforce OAuth Init <#salesforce-oauth>`__
--  `Salesforce OAuth Callback <#salesforce-oauth-callback>`__
+-  `Salesforce OAuth init <#salesforce-oauth>`__
+-  `Salesforce OAuth callback <#salesforce-oauth-callback>`__
 -  `Salesforce save token <#salesforce-save-token>`__
 -  `Salesforce revoke token <#salesforce-revoke-token>`__
 
