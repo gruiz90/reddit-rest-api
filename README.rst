@@ -62,29 +62,23 @@ Common Error Responses:
 
    .. code:: json
 
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Authentication credentials were not provided."
-               ]
-           }
-       }
+        {
+            "error": {
+                "code": 401,
+                "messages": [
+                    "detail: Authentication credentials were not provided."
+                ]
+            }
+        }
 
-   OR
-
-   .. code:: json
-
-       {
-           "error": {
-               "code": 401,
-               "messages": [
-                   "detail: Invalid token."
-               ]
-           }
-       }
-
-    .. code:: json
+        {
+            "error": {
+                "code": 401,
+                "messages": [
+                    "detail: Invalid token."
+                ]
+            }
+        }
 
         {
             "error": {
@@ -94,5 +88,3 @@ Common Error Responses:
                 ]
             }
         }
-
-
