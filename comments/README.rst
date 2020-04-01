@@ -1,12 +1,15 @@
 Comments
 ========
 
-All the endpoints provided to interact with Comments for an authorized
+All the endpoints provided to interact with Submission's Comments for an authorized
 client.
 
--  `Comment Information <#comment-information>`__
--  `Comment Replies <#comment-replies>`__
+-  `Comment Details <#comment-details>`__
+-  `Comment Edit <#comment-edit>`__
+-  `Comment Delete <#comment-delete>`__
 -  `Comment Post Vote <#comment-vote>`__
+-  `Comment Reply <#comment-reply>`__
+-  `Comment Replies <#comment-replies>`__
 
 Common Error Responses for Comments endpoints:
 ----------------------------------------------
@@ -54,7 +57,7 @@ Common Error Responses for Comments endpoints:
            }
        }
 
-Comment Information
+Comment Details
 -------------------
 
 Endpoint to get the Comment data by the id provided in the URL.
@@ -123,6 +126,305 @@ Endpoint to get the Comment data by the id provided in the URL.
            }
        }
 
+Comment Edit
+-------------------
+
+Endpoint to edit a comment by the id provided in the URL.
+The body is the Markdown formatted content for the comment.
+
+-  **URL**
+
+   ``/comments/<str:id>``
+
+-  **Method:**
+
+   ``PATCH``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``body=[string] -- Markdown formatted content``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "body": "**test**"
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http PATCH https://reddit-rest-api.herokuapp.com/comments/flkv4st \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       body=**test**
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Comment 'flkv4st' successfully edited.",
+                "comment": {
+                    "id": "flkv4st",
+                    "body": "**test**",
+                    "created_utc": "2020-03-26T18:44:21",
+                    "author": {
+                        "id": "4rfkxa54",
+                        "name": "sfdctest",
+                        "created_utc": "2019-10-31T22:22:45",
+                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+                        "comment_karma": 3,
+                        "link_karma": 26
+                    },
+                    "score": 0,
+                    "permalink": "/r/test/comments/fpeo3h/tiny_monk/flkv4st/",
+                    "link_id": "t3_fpeo3h",
+                    "parent_id": "t1_flkkb46",
+                    "submission": {
+                        "id": "fpeo3h",
+                        "name": "t3_fpeo3h",
+                        "title": "Tiny monk",
+                        "created_utc": "2020-03-26T16:37:22",
+                        "author_name": "sfdctest",
+                        "num_comments": 4,
+                        "score": 18,
+                        "url": "https://i.pinimg.com/originals/93/64/ef/9364efa9a8b36b0abe30870813af654f.gif"
+                    },
+                    "subreddit": {
+                        "id": "2qh23",
+                        "name": "t5_2qh23",
+                        "display_name": "test",
+                        "public_description": "",
+                        "created_utc": "2008-01-25T05:11:28",
+                        "subscribers": 7351
+                    },
+                    "has_replies": true,
+                    "is_submitter": true,
+                    "distinguished": null,
+                    "edited": true,
+                    "stickied": false
+                }
+            }
+        }
+
+Comment Delete
+-------------------
+
+Endpoint to delete a comment by the id provided in the URL.
+
+-  **URL**
+
+   ``/comments/<str:id>``
+
+-  **Method:**
+
+   ``DELETE``
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http DELETE https://reddit-rest-api.herokuapp.com/comments/fly4ow9 \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Comment 'fly4ow9' successfully deleted."
+            }
+        }
+
+-  **Error Response:**
+
+-  **Call:**
+
+   .. code:: shell
+
+       http DELETE https://reddit-rest-api.herokuapp.com/comments/flkv4st \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
+
+   **Code:** 403 Forbidden **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Cannot delete the comment with id: flkv4st. The authenticated reddit user u/sfdctest needs to be the same as the comment's author u/testuser",
+                "comment": null
+            }
+        }
+
+   **Code:** 404 Not Found **Content:**
+
+   .. code:: json
+
+        {
+            "data": {
+                "detail": "Cannot delete the comment with id: fly4ow9. The comment was already deleted or there is no way to verify the author at this moment."
+            }
+        }
+
+Comment Vote
+------------
+
+Endpoint to post a vote for a comment by the id provided in the url.
+Passing vote\_value = [-1\|0\|1] a downvote, clear\_vote, upvote action
+is executed for the submission.
+
+-  **URL**
+
+   ``/comments/<str:id>/vote``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``vote_value=[-1<=int<=1]``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "vote_value": 1
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/comments/flkv4st/vote \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       vote_value=1
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Vote action 'Upvote' successful for comment with id: flkv4st.",
+                "comment": {
+                    "id": "flkv4st",
+                    "body": "test2",
+                    "created_utc": "2020-03-26T18:44:21",
+                    "author_name": "sfdctest",
+                    "score": 0,
+                    "subreddit_id": "t5_2qh23",
+                    "link_id": "t3_fpeo3h",
+                    "parent_id": "t1_flkkb46",
+                    "has_replies": true
+                }
+            }
+        }
+
+Comment Reply
+-------------
+
+Endpoint that allows posting a reply to a comment by the id provided in the URL.
+The body is the Markdown formatted content for the comment.
+
+-  **URL**
+
+   ``/comments/<str:id>/reply``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``body=[string] -- Markdown formatted content``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "body": "# test"
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/comments/flkv4st/reply \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       body=# test
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "New reply posted by u/sfdctest with id 'fm37apt' to comment with id: flkv4st",
+                "comment": {
+                    "id": "fm37apt",
+                    "body": "# test",
+                    "created_utc": "2020-04-01T04:19:17",
+                    "author": {
+                        "id": "4rfkxa54",
+                        "name": "sfdctest",
+                        "created_utc": "2019-10-31T22:22:45",
+                        "icon_img": "https://www.redditstatic.com/avatars/avatar_default_09_A06A42.png",
+                        "comment_karma": 3,
+                        "link_karma": 26
+                    },
+                    "score": 1,
+                    "permalink": "/r/test/comments/fpeo3h/tiny_monk/fm37apt/",
+                    "link_id": "t3_fpeo3h",
+                    "parent_id": "t1_flkv4st",
+                    "submission": {
+                        "id": "fpeo3h",
+                        "name": "t3_fpeo3h",
+                        "title": "Tiny monk",
+                        "created_utc": "2020-03-26T16:37:22",
+                        "author_name": "sfdctest",
+                        "num_comments": 5,
+                        "score": 18,
+                        "url": "https://i.pinimg.com/originals/93/64/ef/9364efa9a8b36b0abe30870813af654f.gif"
+                    },
+                    "subreddit": {
+                        "id": "2qh23",
+                        "name": "t5_2qh23",
+                        "display_name": "test",
+                        "public_description": "",
+                        "created_utc": "2008-01-25T05:11:28",
+                        "subscribers": 7351
+                    },
+                    "has_replies": false,
+                    "is_submitter": true,
+                    "distinguished": null,
+                    "edited": false,
+                    "stickied": false
+                }
+            }
+        }
+
+
 Comment Replies
 ---------------
 
@@ -189,54 +491,5 @@ The order of the list with flat=True is [Reply\_Level1, Reply\_Level2,
                "limit_request": 2,
                "offset": 0,
                "flat": "True"
-           }
-       }
-
-Comment Vote
-------------
-
-Endpoint to post a vote for a comment by the id provided in the url.
-Passing vote\_value = [-1\|0\|1] a downvote, clear\_vote, upvote action
-is executed for the submission.
-
--  **URL**
-
-   ``/comment/<str:id>/vote``
-
--  **Method:**
-
-   ``POST``
-
--  **Data Params**
-
-   **Required:**
-
-   ``vote_value=[-1<=int<=1]``
-
-   e.g:
-
-   .. code:: json
-
-       {
-           "vote_value": 1
-       }
-
--  **Sample Call:**
-
-   .. code:: shell
-
-       http POST https://reddit-rest-api.herokuapp.com/comment/faab0e4/vote \
-       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
-       vote_value=1
-
--  **Success Response:**
-
--  **Code:** 200 OK **Content:**
-
-   .. code:: json
-
-       {
-           "data": {
-               "detail": "Vote action 'Upvote' successful for submission with id: e8a0c7!"
            }
        }

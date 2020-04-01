@@ -1,15 +1,15 @@
 Clients Authorization
 =====================
 
-All the endpoints provided to authorize a Reddit account from a
-Salesforce organization.
+All this endpoints provided ways to authorize/revoke access to client's Reddit Account, 
+view client details and connect Salesforce orgs.
 
 -  `OAuth Init <#client-oauth>`__
 -  `OAuth Callback <#client-oauth-callback>`__
 -  `OAuth Status <#client-check-oauth-status>`__
 -  `OAuth Confirm <#client-confirm-authorization>`__
--  `View client details <#view-client-details>`__
--  `Disconnect client <#disconnect-client>`__
+-  `Client details <#view-client-details>`__
+-  `Client revoke access <#disconnect-client>`__
 -  `Salesforce OAuth Init <#salesforce-oauth>`__
 -  `Salesforce OAuth Callback <#salesforce-oauth-callback>`__
 -  `Salesforce save token <#salesforce-save-token>`__
@@ -470,13 +470,13 @@ redditor data. Expects a valid bearer token in the Authorization header.
 Disconnect Client
 -----------------
 
-Disconnect a Salesforce Org Client. DELETE request that deletes oauth
-token and changes the Client Org to inactive status. Expects a valid
+Disconnect a Salesforce Org Client. DELETE request that revokes Reddit access token,
+deletes oauth token and changes the Client Org to inactive status. Expects a valid
 bearer token in the Authorization header.
 
 -  **URL**
 
-   ``/clients/disconnect``
+   ``/clients/me``
 
 -  **Method:**
 
@@ -486,7 +486,7 @@ bearer token in the Authorization header.
 
    .. code:: shell
 
-       http DELETE https://reddit-rest-api.herokuapp.com/clients/disconnect \
+       http DELETE https://reddit-rest-api.herokuapp.com/clients/me \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
 
 -  **Success Response:**
@@ -755,7 +755,7 @@ Authorization bearer token.
 
 -  **URL**
 
-   ``/clients/salesforce_token_revoke``
+   ``/clients/salesforce_token``
 
 -  **Method:**
 
@@ -765,7 +765,7 @@ Authorization bearer token.
 
    .. code:: shell
 
-       http DELETE https://reddit-rest-api.herokuapp.com/clients/salesforce_token_revoke \
+       http DELETE https://reddit-rest-api.herokuapp.com/clients/salesforce_token \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
 
 -  **Success Response:**

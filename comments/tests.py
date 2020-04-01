@@ -33,30 +33,30 @@ class CommentsTests(APITestCase):
             },
         )
 
-    def test_comment_info(self):
+    def test_comment_details(self):
         """
-        Function to test comment_info endpoint when having the bearer token.
+        Function to test comment endpoint when having the bearer token.
         I can use the read_only mod of reddit instance to get an actual comment data.
         """
         # First try with a dummy id to get 404 response
-        self._dummy_comment_request('comments:comment_info')
+        self._dummy_comment_request('comments:comment')
 
         # Now try with a real comment id
-        url = reverse('comments:comment_info', args=['faab0e4'])
+        url = reverse('comments:comment', args=['faab0e4'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('meme' in response.data['body'])
 
     def test_comment_edit(self):
         """
-        Function to test comment_info patch endpoint.
+        Function to test comment patch endpoint.
         """
         # First try with a dummy id to get 404 response
-        self._dummy_comment_request('comments:comment_info', patch=True)
+        self._dummy_comment_request('comments:comment', patch=True)
 
         # Now try with a real comment id
         comment_id = 'faab0e4'
-        url = reverse('comments:comment_info', args=[comment_id])
+        url = reverse('comments:comment', args=[comment_id])
         response = self.client.patch(url, data={'body': 0})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
@@ -70,16 +70,16 @@ class CommentsTests(APITestCase):
             f'Cannot edit comment with id: {comment_id}.' in response.data['detail']
         )
 
-    def test_comment_info_delete(self):
+    def test_comment_delete(self):
         """
-        Function to test comment_info delete endpoint.
+        Function to test comment delete endpoint.
         """
         # First try with a dummy id to get 404 response
-        self._dummy_comment_request('comments:comment_info', delete=True)
+        self._dummy_comment_request('comments:comment', delete=True)
 
         # Now try with a real comment id
         comment_id = 'faab0e4'
-        url = reverse('comments:comment_info', args=[comment_id])
+        url = reverse('comments:comment', args=[comment_id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertTrue(

@@ -38,3 +38,19 @@ REST API implemented using **DRF** (`Django Rest Framework <https://github.com/e
             <img src="img_praw.png"/>
         </a>
     </p>
+
+
+-  **Common errors:**
+
+    .. code:: json
+
+        {
+            "error": {
+                "code": 401,
+                "messages": [
+                    "detail: Reddit access token authorization problem. The user may need to re-authorize the app. Exception raised: ResponseException('received 400 HTTP response')."
+                ]
+            }
+        }
+
+

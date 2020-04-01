@@ -5,6 +5,7 @@ from rest_framework import status, exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from prawcore.exceptions import Forbidden
+from praw.exceptions import ClientException
 
 from .utils import CommentsUtils
 from clients.utils import ClientsUtils
@@ -14,9 +15,9 @@ from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 
-class CommentInfo(APIView):
+class Comment(APIView):
     """
-    API endpoint to get/update/delete a reddit comment by the id provided
+    API endpoint to get/update/delete a Reddit Submission's comment by the id provided
     """
 
     authentication_classes = [MyTokenAuthentication, SessionAuthentication]
@@ -34,9 +35,17 @@ class CommentInfo(APIView):
                 detail={'detail': f'No comment exists with the id: {id}.'}
             )
 
-        # Here I need to call refresh() to get the actual replies count
-        comment.refresh()
-        logger.info(f'Total top replies: {len(comment.replies)}')
+        try:
+            # Here I need to call refresh() to get the actual replies count
+            comment.refresh()
+            logger.info(f'Total top replies: {len(comment.replies)}')
+        except ClientException as ex:
+            msg = (
+                f'Error getting comment with id: {id}. '
+                f'Exception raised: {repr(ex)}.'
+            )
+            logger.error(msg)
+            raise exceptions.NotFound(detail={'detail': msg})
 
         comment_data = CommentsUtils.get_comment_data(comment)
         return Response(comment_data, status=status.HTTP_200_OK)
@@ -68,6 +77,8 @@ class CommentInfo(APIView):
                 # Try to delete the comment now
                 try:
                     updated_comment = comment.edit(markdown_body)
+                    # Here I need to call refresh() to get the actual replies count
+                    updated_comment.refresh()
                     updated_comment_data = CommentsUtils.get_comment_data(
                         updated_comment
                     )
@@ -111,25 +122,35 @@ class CommentInfo(APIView):
             # Only can delete the comment if author is the same as the client redditor
             # So check for comment redditor and client data
             comment_redditor = comment.author
-            redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-
-            if comment_redditor.id == redditor_id:
-                # Try to delete the comment now
-                try:
-                    comment.delete()
-                    msg = f'Comment \'{id}\' successfully deleted.'
+            if comment_redditor:
+                redditor_id, redditor_name = ClientsUtils.get_redditor_id_name(
+                    client_org
+                )
+                if comment_redditor.id == redditor_id:
+                    # Try to delete the comment now
+                    try:
+                        comment.delete()
+                        msg = f'Comment \'{id}\' successfully deleted.'
+                        logger.info(msg)
+                    except Exception as ex:
+                        msg = f'Error deleting comment. Exception raised: {repr(ex)}.'
+                        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                        logger.error(msg)
+                else:
+                    msg = (
+                        f'Cannot delete the comment with id: {id}. '
+                        f'The authenticated reddit user u/{redditor_name} '
+                        f'needs to be the same as the comment\'s author u/{comment_redditor.name}'
+                    )
+                    status_code = status.HTTP_403_FORBIDDEN
                     logger.info(msg)
-                except Exception as ex:
-                    msg = f'Error deleting comment. Exception raised: {repr(ex)}.'
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-                    logger.error(msg)
             else:
                 msg = (
                     f'Cannot delete the comment with id: {id}. '
-                    f'The authenticated reddit user u/{redditor_name} '
-                    f'needs to be the same as the comment\'s author u/{comment_redditor.name}'
+                    'The comment was already deleted or there is no '
+                    'way to verify the author at this moment.'
                 )
-                status_code = status.HTTP_403_FORBIDDEN
+                status_code = status.HTTP_404_NOT_FOUND
                 logger.info(msg)
         else:
             msg = f'Reddit instance is read only. Cannot delete comment with id: {id}.'
@@ -182,26 +203,41 @@ class CommentVote(APIView):
 
         # Get vote value from data json and check if valid
         vote_value = self._validate_vote_value(request.data.get('vote_value'))
-        if reddit.read_only:
-            vote_action = 'dummy'
-        else:
-            if vote_value == -1:
-                vote_action = 'Downvote'
-                comment.downvote()
-            elif vote_value == 0:
-                vote_action = 'Clear Vote'
-                comment.clear_vote()
-            else:
-                vote_action = 'Upvote'
-                comment.upvote()
 
-        comment_data = CommentsUtils.get_comment_data_simple(comment)
+        comment_data = None
+        status_code = status.HTTP_200_OK
+        if reddit.read_only:
+            msg = f'Vote action \'dummy\' successful for comment with id: {id}.'
+        else:
+            try:
+                if vote_value == -1:
+                    vote_action = 'Downvote'
+                    comment.downvote()
+                elif vote_value == 0:
+                    vote_action = 'Clear Vote'
+                    comment.clear_vote()
+                else:
+                    vote_action = 'Upvote'
+                    comment.upvote()
+                # Need to force refresh to get replies count
+                comment.refresh()
+                comment_data = CommentsUtils.get_comment_data_simple(comment)
+                msg = f'Vote action \'{vote_action}\' successful for comment with id: {id}.'
+                logger.info(msg)
+            except Exception as ex:
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                msg = (
+                    f'Error posting vote to comment with id: {id}. '
+                    f'Exception raised: {repr(ex)}.'
+                )
+                logger.error(msg)
+
         return Response(
             {
-                'detail': f'Vote action \'{vote_action}\' successful for comment with id: {id}.',
+                'detail': msg,
                 'comment': comment_data,
             },
-            status=status.HTTP_200_OK,
+            status=status_code,
         )
 
 
