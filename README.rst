@@ -1,4 +1,4 @@
-Heroku Reddit API
+Django Reddit API
 =================
 
 |Heroku| |Heroku CI Status| |Code Style|
