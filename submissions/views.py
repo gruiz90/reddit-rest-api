@@ -210,25 +210,9 @@ class SubmissionCrosspost(APIView):
 
         # Get required data values from json, in this case only the subreddit name
         # to crosspost the submission
-        subreddit_name = request.data.get('subreddit')
-        if not subreddit_name:
-            raise exceptions.ParseError(
-                detail={
-                    'detail': (
-                        'A subreddit value corresponding to an existent '
-                        'subreddit name must be provided in the json data.'
-                    )
-                }
-            )
-        else:
-            # Check if this subreddit exists?
-            subreddit = SubredditsUtils.get_sub_if_available(subreddit_name, reddit)
-            if not subreddit:
-                raise exceptions.NotFound(
-                    detail={
-                        'detail': f'No subreddit exists with the name: {subreddit_name}.'
-                    }
-                )
+        subreddit = SubredditsUtils.check_and_get_sub(
+            subreddit_name := request.data.get('subreddit'), reddit
+        )
 
         # Now get the optional data values
         title = request.data.get('title', None)

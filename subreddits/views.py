@@ -16,11 +16,110 @@ from api.utils import Utils
 logger = Utils.init_logger(__name__)
 
 
-class SubredditConnect(APIView):
+class SubredditsSubscriptions(APIView):
     """
-    API endpoint to connects a Salesforce org client to a subreddit by the name.
+        API endpoint to manage subscriptions to subreddits for the client.\n
+        GET returns a list of subreddits subscriptions for the client.\n
+        POST to subscribe a Salesforce org client to a subreddit by the name.\n
+        JSON data params:\n
+                    subreddit=[string] –- Name of the subreddit to subscribe to.
+        DELETE to unsubscribe a Salesforce org client from a subreddit by the name.\n
+                    subreddit=[string] –- Name of the subreddit to unsubscribe from.
+    """
+
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info(f'Subreddits subscriptions for client =>')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, _ = Utils.new_client_request(request.user)
+
+        if reddit.read_only:
+            subreddits = []
+        else:
+            reddit_user = reddit.user
+            subreddits = [
+                SubredditsUtils.get_subreddit_data_simple(sub)
+                for sub in reddit_user.subreddits()
+            ]
+
+        return Response({'subscriptions': subreddits}, status=status.HTTP_200_OK)
+
+    def _subscribe_unsubscribe(self, request, subscribe=True):
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, client_org = Utils.new_client_request(request.user)
+
+        # Get the subreddit name from request data
+        # subreddit_name = request.data.get('subreddit')
+        subreddit = SubredditsUtils.check_and_get_sub(
+            subreddit_name := request.data.get('subreddit'), reddit
+        )
+
+        # Get data I need from subreddit instance
+        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
+        # TODO: Here for now I'll just save the subreddit_data in a Subreddit Model object
+        # But I need to enqueue this into a redis queue, send the data to user as fast as possible
+        SubredditsUtils.create_or_update(subreddit_data)
+
+        status_code, msg = SubredditsUtils.subscribe_action(
+            reddit, logger, subreddit_name, client_org, subreddit, subscribe
+        )
+
+        return Response(
+            {'detail': msg, 'subreddit': subreddit_data}, status=status_code
+        )
+
+    def post(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Subreddit subscription =>')
+        return self._subscribe_unsubscribe(request)
+
+    def delete(self, request, Format=None):
+        logger.info('-' * 100)
+        logger.info('Subreddit unsubscription =>')
+        return self._subscribe_unsubscribe(request, False)
+
+
+class SubredditDetails(APIView):
+    """
+    API endpoint to get the Subreddit data by the name provided.
+    """
+
+    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, name, Format=None):
+        logger.info('-' * 100)
+        logger.info(f'Subreddit "{name}" info request =>')
+
+        # Gets the reddit instance from the user in request (ClientOrg)
+        reddit, _ = Utils.new_client_request(request.user)
+        # Get subreddit instance with the name provided
+        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
+        if subreddit is None:
+            raise exceptions.NotFound(
+                detail={'detail': f'No subreddit exists with the name: {name}.'}
+            )
+
+        # Get data I need from subreddit instance
+        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
+        # TODO: Enqueue this in a redis queue job later
+        SubredditsUtils.create_or_update(subreddit_data)
+
+        return Response(subreddit_data, status=status.HTTP_200_OK)
+
+
+class SubredditConnections(APIView):
+    """
+    GET connects a Salesforce org client to a subreddit by the name.\n
     This creates a connection between the ClientOrg and Subreddit, subscribes the reddit user if not already
-    and returns all the relevant data about the subreddit.
+    and returns all the relevant data about the subreddit.\n
+
+    DELETE disconnects a Salesforce org client to a Subreddit by the name.\n
+    This only removes the connection between the ClientOrg and the Subreddit if exists.\n
     """
 
     authentication_classes = [MyTokenAuthentication]
@@ -71,17 +170,7 @@ class SubredditConnect(APIView):
             status=status.HTTP_201_CREATED,
         )
 
-
-class SubredditDisconnect(APIView):
-    """
-    API endpoint to disconnect a Salesforce org client to a Subreddit by the name.
-    This only removes the connection between the ClientOrg and the Subreddit if exists.
-    """
-
-    authentication_classes = [MyTokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, name, Format=None):
+    def delete(self, request, name, Format=None):
         logger.info('-' * 100)
         logger.info(f'Subreddit "{name}" disconnect =>')
 
@@ -111,62 +200,6 @@ class SubredditDisconnect(APIView):
         )
 
 
-class Subreddit(APIView):
-    """
-    API endpoint to get the Subreddit data by the name provided.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, name, Format=None):
-        logger.info('-' * 100)
-        logger.info(f'Subreddit "{name}" info request =>')
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, _ = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
-        if subreddit is None:
-            raise exceptions.NotFound(
-                detail={'detail': f'No subreddit exists with the name: {name}.'}
-            )
-
-        # Get data I need from subreddit instance
-        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
-        # TODO: Enqueue this in a redis queue job later
-        SubredditsUtils.create_or_update(subreddit_data)
-
-        return Response(subreddit_data, status=status.HTTP_200_OK)
-
-
-class SubredditSubscriptions(APIView):
-    """
-    API endpoint to get a list of subreddits subscriptions for the client.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, Format=None):
-        logger.info('-' * 100)
-        logger.info(f'Subreddits subscriptions for client =>')
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, _ = Utils.new_client_request(request.user)
-
-        if reddit.read_only:
-            subreddits = []
-        else:
-            reddit_user = reddit.user
-            subreddits = [
-                SubredditsUtils.get_subreddit_data_simple(sub)
-                for sub in reddit_user.subreddits()
-            ]
-
-        return Response({'subscriptions': subreddits}, status=status.HTTP_200_OK)
-
-
 class SubredditRules(APIView):
     """
     API endpoint to get the rules of a subreddit by name.
@@ -191,81 +224,10 @@ class SubredditRules(APIView):
         return Response(subreddit.rules(), status=status.HTTP_200_OK)
 
 
-class SubredditSubscribe(APIView):
-    """
-    API endpoint to subscribe a Salesforce org client to a subreddit by the name.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, name, Format=None):
-        logger.info('-' * 100)
-        logger.info(f'Subreddit "{name}" subscribe =>')
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, client_org = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
-        if subreddit is None:
-            raise exceptions.NotFound(
-                detail={'detail': f'No subreddit exists with the name: {name}.'}
-            )
-
-        # Get data I need from subreddit instance
-        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
-        # TODO: Here for now I'll just save the subreddit_data in a Subreddit Model object
-        # But I need to enqueue this into a redis queue, send the data to user as fast as possible
-        SubredditsUtils.create_or_update(subreddit_data)
-
-        status_code, msg = SubredditsUtils.subscribe_action(
-            reddit, logger, name, client_org, subreddit
-        )
-
-        return Response(
-            {'detail': msg, 'subreddit': subreddit_data}, status=status_code
-        )
-
-
-class SubredditUnsubscribe(APIView):
-    """
-    API endpoint to unsubscribe a Salesforce org client from a subreddit by the name.
-    """
-
-    authentication_classes = [MyTokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, name, Format=None):
-        logger.info('-' * 100)
-        logger.info(f'Subreddit "{name}" unsubscribe =>')
-
-        # Gets the reddit instance from the user in request (ClientOrg)
-        reddit, client_org = Utils.new_client_request(request.user)
-        # Get subreddit instance with the name provided
-        subreddit = SubredditsUtils.get_sub_if_available(name, reddit)
-        if subreddit is None:
-            raise exceptions.NotFound(
-                detail={'detail': f'No subreddit exists with the name: {name}.'}
-            )
-
-        # Get data I need from subreddit instance
-        subreddit_data = SubredditsUtils.get_subreddit_data(subreddit)
-        # TODO: Here for now I'll just save the subreddit_data in a Subreddit Model object
-        # But I need to enqueue this into a redis queue, send the data to user as fast as possible
-        SubredditsUtils.create_or_update(subreddit_data)
-
-        status_code, msg = SubredditsUtils.subscribe_action(
-            reddit, logger, name, client_org, subreddit, subscribe=False
-        )
-        return Response(
-            {'detail': msg, 'subreddit': subreddit_data}, status=status_code
-        )
-
-
 class SubredditSubmissions(APIView):
     """
         API endpoint to access Subreddit's submissions -> subreddits/:name/submissions\n
-        It returns a max of 5 submissions per request. Uses offset to get the rest in different request.\n
+        GET returns a max of 5 submissions per request. Uses offset to get the rest in different request.\n
         URL query params:\n
                     sort=[controversial|gilded|hot|new|rising|top] (default=hot)
                     time_filter=[all|day|hour|month|week|year] (default=all)

@@ -5,11 +5,11 @@ All the endpoints provided to interact with Subreddits for an authorized
 client.
 
 -  `Subreddit subscriptions <#subreddits-subscriptions>`__
+-  `Subscribe to a Subreddit <#subreddit-subscribe>`__
+-  `Unsubscribe to a Subreddit <#subreddit-unsubscribe>`__
 -  `Subreddit details <#subreddit-details>`__
 -  `Connect a Subreddit <#subreddit-connect>`__
 -  `Disconnect a Subreddit <#subreddit-disconnect>`__
--  `Subscribe to a Subreddit <#subreddit-subscribe>`__
--  `Unsubscribe to a Subreddit <#subreddit-unsubscribe>`__
 -  `Subreddit rules <#subreddit-rules>`__
 -  `Subreddit submissions <#subreddit-submissions>`__
 -  `Subreddit post submission <#subreddit-post-submission>`__
@@ -37,7 +37,7 @@ Endpoint to get the list of subreddits subscriptions for the client.
 
 -  **URL**
 
-   ``/subreddits``
+   ``/subreddits/subscriptions``
 
 -  **Method:**
 
@@ -47,7 +47,7 @@ Endpoint to get the list of subreddits subscriptions for the client.
 
    .. code:: shell
 
-       http GET https://reddit-rest-api.herokuapp.com/subreddits \
+       http GET https://reddit-rest-api.herokuapp.com/subreddits/subscriptions \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
 
 -  **Success Response:**
@@ -78,6 +78,128 @@ Endpoint to get the list of subreddits subscriptions for the client.
                ]
            }
        }
+
+Subreddit subscribe
+-------------------
+
+Endpoint to subscribe a Salesforce org client to a subreddit by passing the name in the request's data.
+
+-  **URL**
+
+   ``/subreddits/subscriptions``
+
+-  **Method:**
+
+   ``POST``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``subreddit=[string] –- Name of the subreddit to subscribe to.``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "subreddit": "test"
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http POST https://reddit-rest-api.herokuapp.com/subreddits/subscriptions \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       subreddit=test
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Reddit user u/sfdctest succesfully subscribed to r/test.",
+                "subreddit": {
+                    "id": "2qh23",
+                    "name": "t5_2qh23",
+                    "display_name": "test",
+                    "description": "This is a place to test things.",
+                    "description_html": "<!-- SC_OFF --><div class=\"md\"><p>This is a place to test things.</p>\n</div><!-- SC_ON -->",
+                    "public_description": "",
+                    "created_utc": "2008-01-25T05:11:28",
+                    "subscribers": 7352,
+                    "spoilers_enabled": true,
+                    "over18": false,
+                    "can_assign_link_flair": true,
+                    "can_assign_user_flair": true
+                }
+            }
+        }
+
+Subreddit unsubscribe
+---------------------
+
+Endpoint to unsubscribe a Salesforce org client from a subreddit by passing the name in the request's data.
+
+-  **URL**
+
+   ``/subreddits/subscriptions``
+
+-  **Method:**
+
+   ``DELETE``
+
+-  **Data Params**
+
+   **Required:**
+
+   ``subreddit=[string] –- Name of the subreddit to unsubscribe from.``
+
+   e.g:
+
+   .. code:: json
+
+       {
+           "subreddit": "test"
+       }
+
+-  **Sample Call:**
+
+   .. code:: shell
+
+       http DELETE https://reddit-rest-api.herokuapp.com/subreddits/subscriptions \
+       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
+       subreddit=test
+
+-  **Success Response:**
+
+-  **Code:** 200 OK **Content:**
+
+   .. code:: json
+
+       {
+            "data": {
+                "detail": "Reddit user u/sfdctest succesfully unsubscribed from r/test.",
+                "subreddit": {
+                    "id": "2qh23",
+                    "name": "t5_2qh23",
+                    "display_name": "test",
+                    "description": "This is a place to test things.",
+                    "description_html": "<!-- SC_OFF --><div class=\"md\"><p>This is a place to test things.</p>\n</div><!-- SC_ON -->",
+                    "public_description": "",
+                    "created_utc": "2008-01-25T05:11:28",
+                    "subscribers": 7353,
+                    "spoilers_enabled": true,
+                    "over18": false,
+                    "can_assign_link_flair": true,
+                    "can_assign_user_flair": true
+                }
+            }
+        }
 
 Subreddit details
 ---------------------
@@ -132,7 +254,7 @@ relevant data about the subreddit.
 
 -  **URL**
 
-   ``/subreddits/<str:name>/connect``
+   ``/subreddits/<str:name>/connections``
 
 -  **Method:**
 
@@ -142,7 +264,7 @@ relevant data about the subreddit.
 
    .. code:: shell
 
-       http POST https://reddit-rest-api.herokuapp.com/subreddits/python/connect \
+       http POST https://reddit-rest-api.herokuapp.com/subreddits/python/connections \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
 
 -  **Success Response:**
@@ -177,17 +299,17 @@ Subreddit if exists.
 
 -  **URL**
 
-   ``/subreddits/<str:name>/disconnect``
+   ``/subreddits/<str:name>/connections``
 
 -  **Method:**
 
-   ``POST``
+   ``DELETE``
 
 -  **Sample Call:**
 
    .. code:: shell
 
-       http POST https://reddit-rest-api.herokuapp.com/subreddits/python/disconnect \
+       http DELETE https://reddit-rest-api.herokuapp.com/subreddits/python/connections \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
 
 -  **Success Response:**
@@ -199,72 +321,6 @@ Subreddit if exists.
        {
            "data": {
                "detail": "Client disconnected subreddit succesfully."
-           }
-       }
-
-Subreddit subscribe
--------------------
-
-Endpoint to subscribe a Salesforce org client to a subreddit by the
-name.
-
--  **URL**
-
-   ``/subreddits/<str:name>/subscribe``
-
--  **Method:**
-
-   ``POST``
-
--  **Sample Call:**
-
-   .. code:: shell
-
-       http POST https://reddit-rest-api.herokuapp.com/subreddits/python/subscribe \
-       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
-
--  **Success Response:**
-
--  **Code:** 200 OK **Content:**
-
-   .. code:: json
-
-       {
-           "data": {
-               "detail": "Client succesfully subscribed to python."
-           }
-       }
-
-Subreddit unsubscribe
----------------------
-
-Endpoint to unsubscribe a Salesforce org client from a subreddit by the
-name.
-
--  **URL**
-
-   ``/subreddits/<str:name>/unsubscribe``
-
--  **Method:**
-
-   ``POST``
-
--  **Sample Call:**
-
-   .. code:: shell
-
-       http POST https://reddit-rest-api.herokuapp.com/subreddits/python/unsubscribe \
-       'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa'
-
--  **Success Response:**
-
--  **Code:** 200 OK **Content:**
-
-   .. code:: json
-
-       {
-           "data": {
-               "detail": "Client succesfully unsubscribed from python."
            }
        }
 

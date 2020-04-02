@@ -48,28 +48,32 @@ class SubredditsUtils(object):
         status_code, msg = status.HTTP_200_OK, None
         if not reddit.read_only:
             _, redditor_name = ClientsUtils.get_redditor_id_name(client_org)
-            if not subreddit.user_is_subscriber:
-                try:
-                    subreddit.subscribe() if subscribe else subreddit.unsubscribe()
+            try:
+                subscribed = subreddit.user_is_subscriber
+                if not subscribed and subscribe:
+                    subreddit.subscribe()
+                elif subscribed and not subscribe:
+                    subreddit.unsubscribe()
+                else:
+                    msg = (
+                        f'Reddit user u/{redditor_name} already '
+                        f'{"subscribed to" if subscribe else "unsubscribed from"} r/{name}.'
+                    )
+                    logger.info(msg)
+                if not msg:
                     msg = (
                         f'Reddit user u/{redditor_name} succesfully '
                         f'{"subscribed to" if subscribe else "unsubscribed from"} r/{name}.'
                     )
                     logger.info(msg)
-                except Exception as ex:
-                    msg = (
-                        f'Error {"subscribing" if subscribe else "unsubscribing"} '
-                        f'u/{redditor_name} {"to" if subscribe else "from"} r/{name}. '
-                        f'Exception raised: {repr(ex)}.'
-                    )
-                    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-                    logger.error(msg)
-            else:
+            except Exception as ex:
                 msg = (
-                    f'Reddit user u/{redditor_name} already '
-                    f'{"subscribed to" if subscribe else "unsubscribed from"} r/{name}.'
+                    f'Error {"subscribing" if subscribe else "unsubscribing"} '
+                    f'u/{redditor_name} {"to" if subscribe else "from"} r/{name}. '
+                    f'Exception raised: {repr(ex)}.'
                 )
-                logger.info(msg)
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+                logger.error(msg)
         else:
             msg = (
                 f'Reddit instance is read only. Cannot '
@@ -78,6 +82,28 @@ class SubredditsUtils(object):
             status_code = status.HTTP_405_METHOD_NOT_ALLOWED
             logger.warn(msg)
         return status_code, msg
+
+    @staticmethod
+    def check_and_get_sub(subreddit_name, reddit):
+        if not subreddit_name or not isinstance(subreddit_name, str):
+            raise exceptions.ParseError(
+                detail={
+                    'detail': (
+                        'A subreddit value corresponding to an existent '
+                        'subreddit name must be provided in the json data.'
+                    )
+                }
+            )
+        else:
+            # Check if this subreddit exists?
+            subreddit = SubredditsUtils.get_sub_if_available(subreddit_name, reddit)
+            if not subreddit:
+                raise exceptions.NotFound(
+                    detail={
+                        'detail': f'No subreddit exists with the name: {subreddit_name}.'
+                    }
+                )
+        return subreddit
 
     @staticmethod
     def get_subreddit_data(subreddit):
