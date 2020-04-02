@@ -130,7 +130,7 @@ The body is the Markdown formatted content for the comment.
 
        http PATCH https://reddit-rest-api.herokuapp.com/comments/flkv4st \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
-       body=**test**
+       body='**test**'
 
 -  **Success Response:**
 
@@ -414,7 +414,7 @@ The body is the Markdown formatted content for the comment.
 
        http POST https://reddit-rest-api.herokuapp.com/comments/flkv4st/replies \
        'Authorization:Bearer 30ad9388f15b1da7ef6c08b03721a1f08b5426fa' \
-       body=# test
+       body='# test'
 
 -  **Success Response:**
 
