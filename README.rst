@@ -1,12 +1,10 @@
-Django Reddit API
-=================
+Reddit REST API
+===============
 
-|Heroku| |Heroku CI Status| |Code Style|
+|Heroku| |Code Style|
 
 .. |Heroku| image:: https://ci-badge.herokuapp.com/appdeployed?app=reddit-rest-api&root=clients/me
    :target: https://reddit-rest-api.herokuapp.com
-.. |Heroku CI Status| image:: https://ci-badge.herokuapp.com/last.svg
-   :target: https://dashboard.heroku.com/pipelines/69207ad6-ac91-45c4-b653-4c464ba19bdb/tests
 .. |Code Style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
