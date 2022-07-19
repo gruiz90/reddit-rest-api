@@ -39,7 +39,7 @@ sqlparse==0.3.0
 termcolor==1.1.0
 typed-ast==1.4.0
 update-checker==0.16
-urllib3==1.25.8
+urllib3==1.26.5
 websocket-client==0.56.0
 whitenoise==4.1.4
 wrapt==1.11.2
